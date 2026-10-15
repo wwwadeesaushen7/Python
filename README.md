@@ -1,9 +1,23 @@
-# Skychrome — playable website
+# Skychrome v1.1 — ready-to-host website
 
-This branch contains the complete, built browser game. No Node.js or Python installation is required to host it.
+This folder contains the complete browser game. No Node.js or Python installation is needed to host or play this built website.
 
-To host on Netlify, download this branch as a ZIP, extract it, and drag the folder containing index.html to https://app.netlify.com/drop.
+## Update your existing Netlify website
 
-For GitHub Pages, open this repository's Settings → Pages, select Deploy from a branch, choose skychrome-website and / (root), then Save.
+1. Download the skychrome-website branch ZIP from GitHub and extract it.
+2. Open your existing site in Netlify, go to Deploys, and upload the extracted folder containing index.html and assets/.
+3. Open your game website and refresh it. The flight deck shows v1.1.
 
-In-game controls: WASD/arrow keys steer; Space fires; Shift boosts; E launches a homing missile; P/Escape pauses. Touch controls appear on phones. Choose Low graphics for lower-powered PCs.
+## What changed in v1.1
+
+- Lighter water rendering, batched terrain and aircraft, instanced effects, fixed pixel budgets, and faster adaptive resolution.
+- Stable mouse aiming and click-to-fire; straight cannon shots converge on the sight. A lead diamond helps track moving enemies.
+- Terrain, water, and wing impacts crash your jet. Colliding with an enemy jet destroys both aircraft, including during damage immunity.
+- Low-altitude warning, explosion sequence, debrief, and retry.
+- Pausing stops scene rendering. The menu preview is capped at 30 FPS.
+
+Controls: mouse aims; left click or Space fires; WASD / arrows steer; Shift boosts; E launches a guided missile; P / Escape pauses. Touch controls appear on phones. Start with Low graphics on slower computers. The settings dialog reports software rendering if browser hardware acceleration is unavailable.
+
+Validation: 30 gameplay/terrain tests and 22 production-browser checks pass. In the same cloud software-rendering benchmark, Balanced combat improved from 9.8 to 51.7 FPS; hardware results vary. See docs/PERFORMANCE.md for methods and limitations.
+
+For GitHub Pages, choose skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. All asset paths support subdirectory hosting.
