@@ -1,4 +1,4 @@
-# Skychrome v2.2.0 — audio and your own music
+# Skychrome v2.2.1 — audio and your own music
 
 The game includes separate original instrumental music for the lobby and the match, plus procedural aircraft and combat sound effects. No music account, external stream, or plugin is required.
 
@@ -8,6 +8,10 @@ The game includes separate original instrumental music for the lobby and the mat
 - **Match:** Afterburn, a more energetic combat theme at 120 BPM.
 - Both are original 48-second loops bundled with the website. They crossfade when starting or leaving a match; pausing reduces music level. Browser audio starts after your first click, tap or keypress, and hidden tabs go silent.
 - Aircraft audio layers engine/exhaust noise, turbine whine, rumble and airflow. Afterburners raise engine power; first-person view softens wind. Cannons, missiles, impacts, explosions and nearby passes have separate effects, distance attenuation and stereo placement. These are synthesized effects, not recordings from real fighter aircraft.
+
+## Cannon fire
+
+Player cannons use three reusable, original synthesized twin-cannon bursts with a sharp muzzle crack, falling low-frequency thump, mechanical ring and short tail. Holding left mouse or Space triggers the sound for each actual cannon volley. Enemy fire has a quieter, position-aware variation. While the player fires, engine and music levels dip briefly so the cannon remains audible; the background returns smoothly after release. Master mute and sound-effects volume control all gunfire. Samples total about 107 KB at 48 kHz and reuse the existing 24-voice budget. They do not require network downloads or real aircraft recordings.
 
 ## Settings
 

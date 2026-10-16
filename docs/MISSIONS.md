@@ -1,4 +1,4 @@
-# Skychrome v2.2.0 — long operations and roll controls
+# Skychrome v2.2.1 — long operations and roll controls
 
 Campaign and ranked games now use multi-stage operations. The new objective budgets replace the short v2.0 sorties; existing level unlocks, earned skins, profiles and account configuration remain compatible.
 
@@ -60,4 +60,4 @@ Old saved keys migrate automatically. The old default E missile moves to F. If F
 
 ## Update your site
 
-Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.2.0.
+Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.2.1.

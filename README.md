@@ -1,4 +1,4 @@
-# Skychrome v2.2.0 — ready-to-host website
+# Skychrome v2.2.1 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play the compiled website.
 
@@ -6,9 +6,13 @@ This folder contains the complete browser game. No Python or Node.js installatio
 
 1. Download the `skychrome-website` branch ZIP from GitHub and extract it.
 2. If you already enabled accounts, keep your configured `account-config.json` in the new folder. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, `audio/`, and `account-config.json`.
-3. Refresh your game website. The flight deck should show **v2.2.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
+3. Refresh your game website. The flight deck should show **v2.2.1**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
 
 Launch requests real browser fullscreen. If the browser does not allow it, the game starts in its window. Escape exits fullscreen and pauses; P pauses/resumes.
+
+## Cannon sound update in v2.2.1
+
+Hold **left mouse** or **Space** for sharp twin-cannon bursts with a muzzle crack, low pressure thump, mechanical ring and short tail. These replace the quiet generic shot effect. Enemy cannons have quieter sounds placed in their direction. Engine and music briefly lower while you fire so the cannon stays audible, then return smoothly after release. Sound effects volume and master mute control gunfire. Three short samples are generated once and reused within the existing 24-voice limit.
 
 ## Tougher opponents, roll recovery and audio in v2.2.0
 
@@ -57,6 +61,6 @@ Low, Balanced, and High remain fixed graphics presets. Automatic resolution is a
 
 The renderer retains its existing pixel/entity/effect limits, batching, and light water shader. Skin rewards add no downloaded textures or aircraft models. The account SDK is loaded only when the account service is configured.
 
-Validation: **72 automated gameplay/progression/profile/cloud/Postgres tests, 27 regression browser checks, 21 progression/account browser checks, and 19 audio/music browser checks pass.** Final production touch/layout checks also pass on portrait, landscape, and 320px-wide phones. The long-operation browser checks accelerate animation timestamps while keeping the production physics and objective budgets unchanged. The new-feature browser tests cover real fullscreen, full multi-stage campaign victories and reward gifts, Q/E roll, persistence, ranked penalties, and the actual Supabase SDK with simulated provider responses. Live Google/Facebook/email login must be checked after activating your projects. No physical 4 GB or 8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
+v2.2.1 validation: **74 automated gameplay/profile/cloud/Postgres tests and 23 audio/music browser checks pass.** Audio checks exercise actual output from mouse, Space and enemy firing, sustained fire, release, background ducking/recovery, independent muting, custom files, storage and phone layout. The v2.2.0 update also passed 27 general browser checks and 21 progression/account checks. Live account providers still require project activation. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
 
 For GitHub Pages, choose `skychrome-website` and `/ (root)` under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.
