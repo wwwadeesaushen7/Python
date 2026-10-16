@@ -22,3 +22,15 @@ npm run benchmark
 The benchmark starts and stops a local static server. It defaults to `/usr/bin/chromium`; set `CHROMIUM_PATH` for a different executable. `node tests/benchmark.mjs /path/to/another/build` benchmarks another built website with the same game UI and read-only diagnostics. The original build used for this comparison is retained locally at `/tmp/skychrome-before/` for this workspace session.
 
 A physical 4 GB or 8 GB Windows PC was not available in this environment. If a browser uses software rendering despite having a GPU, the settings dialog identifies that condition; enabling browser hardware acceleration can improve results further.
+
+## Version 2.0 fullscreen check
+
+After adding the 100-level campaign, ranks, rewards, and profiles, the same software-rendering environment was sampled again in **fullscreen** at 1440×1080. Automatic resolution was explicitly enabled for this benchmark. The production default remains fixed resolution; these figures do not describe fixed High performance.
+
+| Scenario | Preset | Sample FPS | Final draw calls | Estimated JS heap |
+| --- | --- | ---: | ---: | ---: |
+| Free flight | Low | 56.8 | 18 | 11 MB |
+| Free flight | Balanced | 50.1 | 18 | 9 MB |
+| Combat | Balanced | 50.7 | 20 | 10 MB |
+
+The sample uses a different aspect ratio from the earlier embedded stage, so it is not an equal-resolution comparison. The heap estimate excludes browser, GPU, and operating-system memory. No physical 4 GB or 8 GB PC was tested. New features keep the same render budgets and do not download additional models or skin textures. The account SDK is a separate lazy-loaded chunk and is not requested when accounts are unconfigured. Raw results: `v2-performance-results.json`.

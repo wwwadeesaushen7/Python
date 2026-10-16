@@ -1,27 +1,39 @@
-# Skychrome v1.1.1 — ready-to-host website
+# Skychrome v2.0.0 — ready-to-host website
 
-This folder contains the complete browser game. No Node.js or Python installation is needed to host or play this built website.
+This folder contains the complete browser game. No Python or Node.js installation is needed to host or play the compiled website.
 
 ## Update your existing Netlify website
 
-1. Download the skychrome-website branch ZIP from GitHub and extract it.
-2. Open your existing site in Netlify, go to Deploys, and upload the extracted folder containing index.html and assets/.
-3. Open your game website and refresh it. The flight deck shows v1.1.1.
+1. Download the `skychrome-website` branch ZIP from GitHub and extract it.
+2. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, and `account-config.json`.
+3. Refresh your game website. The flight deck should show **v2.0.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
 
-## Graphics selection fix in v1.1.1
+Launch requests real browser fullscreen. If the browser does not allow it, the game starts in its window. Escape exits fullscreen and pauses; P pauses/resumes.
 
-Low, Balanced, and High now stay at the selected preset's full resolution. Low FPS does not automatically reduce sharpness. Automatic resolution is a separate opt-in switch, off by default, including for settings saved by older versions. When enabled, its actual percentage is visible in Settings and the graphics badge. Selecting any preset disables automatic resolution and immediately restores full sharpness for that preset. Fixed High may produce a lower frame rate on slower hardware.
+## New in v2.0.0
 
-## Features from v1.1
+- **100 campaign levels** across ten chapters, sequential unlocks, replay, three-star results, and a complete level map.
+- **Ranked sorties against AI pilots**: Cadet, Bronze, Silver, Gold, Platinum, Diamond, Ace, and Legend. Wins earn 120–150 RP; a crash, loss, quit, or interrupted ranked flight costs up to 45 RP. This is a solo ladder, not online PvP.
+- **21 jet skins**: three starters, eleven level-milestone gifts, and seven permanent rank rewards. Equip unlocked finishes in Customize; locked finishes show their requirements.
+- **Player profiles** save callsigns, completed levels and best stars/scores, RP/peak rank, XP, flight statistics, equipped cosmetics, and the last 30 flights. Player account includes backup export/import.
+- **Supabase integration** for Gmail/email login links, Google, Facebook, and account cloud saves. Guest and signed-in saves stay separate; moving guest progress into an account requires confirmation. Cloud revision checks prevent silent overwrites from another device.
 
-- Lighter water rendering, batched terrain and aircraft, instanced effects, fixed pixel budgets, and optional adaptive resolution.
-- Stable mouse aiming and click-to-fire; straight cannon shots converge on the sight. A lead diamond helps track moving enemies.
-- Terrain, water, and wing impacts crash your jet. Colliding with an enemy jet destroys both aircraft, including during damage immunity.
-- Low-altitude warning, explosion sequence, debrief, and retry.
-- Pausing stops scene rendering. The menu preview is capped at 30 FPS.
+## Activate login and cloud saves
 
-Controls: mouse aims; left click or Space fires; WASD / arrows steer; Shift boosts; E launches a guided missile; P / Escape pauses. Touch controls appear on phones. Start with Low graphics on slower computers. The settings dialog reports software rendering if browser hardware acceleration is unavailable.
+Guest saves work immediately on this device. **The login providers and cloud saves require your own Supabase project and provider activation. They are not active in the download.**
 
-Validation: 36 graphics/gameplay/terrain tests and 26 production-browser checks pass. In the v1.1 cloud software-rendering benchmark with automatic resolution enabled, Balanced combat improved from 9.8 to 51.7 FPS; hardware results vary. See docs/PERFORMANCE.md for methods and limitations.
+Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supabase.sql) in your Supabase project, and edit the two public values in `account-config.json` before uploading the folder. The guide includes email delivery, Google, Facebook, redirect URLs, and verification steps. Never place private service-role/provider/SMTP secrets in website files.
 
-For GitHub Pages, choose skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. All asset paths support subdirectory hosting.
+For future game updates, keep your configured `account-config.json` and the same website address. Guest progress belongs to that browser and origin; export a backup before clearing browser data or changing sites.
+
+## Controls and performance
+
+Mouse aims; left click or Space fires; WASD / arrows steer; Shift boosts; E launches a guided missile; P / Escape pauses. Touch controls appear on phones. Green gates restore hull and boost. Terrain/water contact destroys your jet; an aircraft collision destroys both jets.
+
+Low, Balanced, and High remain fixed graphics presets. Automatic resolution is a separate option, off by default. Selecting a preset disables Auto and restores full preset sharpness. Start with Low on slower computers. The settings dialog identifies software rendering when browser hardware acceleration is unavailable.
+
+The renderer retains its existing pixel/entity/effect limits, batching, and light water shader. Skin rewards add no downloaded textures or aircraft models. The account SDK is loaded only when the account service is configured.
+
+Validation: **56 automated gameplay/progression/profile/cloud/Postgres tests, 26 regression browser checks, and 20 new-feature browser checks pass.** The new-feature browser tests cover real fullscreen, live campaign victories and reward gifts, persistence, ranked penalties, and the actual Supabase SDK with simulated provider responses. Live Google/Facebook/email login must be checked after activating your projects. No physical 4 GB or 8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
+
+For GitHub Pages, choose `skychrome-website` and `/ (root)` under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.
