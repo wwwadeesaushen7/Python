@@ -1,22 +1,34 @@
-# Skychrome v2.1.0 — ready-to-host website
+# Skychrome v2.2.0 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play the compiled website.
 
 ## Update your existing Netlify website
 
 1. Download the `skychrome-website` branch ZIP from GitHub and extract it.
-2. If you already enabled accounts, keep your configured `account-config.json` in the new folder. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, and `account-config.json`.
-3. Refresh your game website. The flight deck should show **v2.1.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
+2. If you already enabled accounts, keep your configured `account-config.json` in the new folder. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, `audio/`, and `account-config.json`.
+3. Refresh your game website. The flight deck should show **v2.2.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
 
 Launch requests real browser fullscreen. If the browser does not allow it, the game starts in its window. Escape exits fullscreen and pauses; P pauses/resumes.
 
-## Longer missions and Q/E roll in v2.1.0
+## Tougher opponents, roll recovery and audio in v2.2.0
+
+- **Armored enemies:** 16–34 hull points. A single missile or cannon volley cannot destroy them. Aim steadily at the moving-target lead diamond; the target hull bar shows remaining strength.
+- **Four AI roles:** interceptors, flankers, divers and sweepers change altitude and direction, make attack passes and perform evasive turns when hit. Aircraft bank and pitch with their movement.
+- **Q / E rolls recover automatically:** release the key and the jet smoothly returns to level flight. The camera remains steady for aiming.
+- **Layered aircraft and combat sound:** engine roar, turbine whine, wind, afterburner power, cannons, missiles, hits, explosions and nearby jet passes. Effects use stereo positioning and distance attenuation.
+- **Separate original music:** Blue Horizon plays in the lobby; Afterburn plays during matches. Music crossfades when entering/leaving a flight and lowers during pause. Audio begins after your first click or tap.
+- **Your own music:** open Settings → Your soundtrack. Choose separate Lobby and Match files (up to 50 MB each), preview them, or use the defaults. Supported formats depend on your browser; MP3 is a good choice. Files stay in this browser and are never uploaded. The status shows whether a file is saved or only available for this session.
+- Master volume, sound effects volume and music volume are independent. Custom music streams through the browser; audio effects have a 24-voice limit. Enemy/projectile/rendering limits remain capped.
+
+See [docs/AUDIO.md](docs/AUDIO.md) for music settings and local-file storage. Keep the `audio/` folder when uploading the website. Existing progress, account setup and rewards remain compatible.
+
+## Long missions and flight controls
 
 - **Campaign:** every level now has 4–8 stages. Complete both combat and gate goals in each stage, then finish all stages to win. Routes and objective counts grow with level, targeting roughly 6–17 minutes at normal cruise speed; boost and pilot skill change the actual time.
 - **Ranked:** 6–9 extended stages with progressively tougher enemy formations and precision gates, targeting roughly 9–20 minutes at normal cruise speed.
 - Higher levels/ranks increase targets, route length, enemy hull, squad size, attack frequency, damage, aim prediction, and maneuvers; gate clearance gets tighter. Enemy/projectile/effect/rendering limits remain bounded.
 - Waiting never wins a mission. The timer is a failure deadline. Extra kills in an early stage cannot complete later stages; missed gates are replaced along the route.
-- **Q / E rotate the jet left / right through 360°.** Release to hold orientation. Steering follows the jet's roll; the aiming camera stays level. Visible aircraft rotation, cannon muzzles, and ground/aircraft collisions use the roll orientation. Touchscreen roll buttons are included.
+- **Q / E rotate the jet left / right through 360°.** Release to smoothly return to level flight. Steering follows the jet's roll; the aiming camera stays level. Visible aircraft rotation, cannon muzzles, and ground/aircraft collisions use the roll orientation. Touchscreen roll buttons are included.
 - **F launches missiles.** Old saved controls migrate automatically; if F already has a custom binding, Controls shows the selected replacement key. Fullscreen HUD shows stage goals, operation totals, and roll angle.
 
 See [docs/MISSIONS.md](docs/MISSIONS.md) for objective counts, timing, controls, and completion rules. Existing player progress and earned rewards remain compatible.
@@ -45,6 +57,6 @@ Low, Balanced, and High remain fixed graphics presets. Automatic resolution is a
 
 The renderer retains its existing pixel/entity/effect limits, batching, and light water shader. Skin rewards add no downloaded textures or aircraft models. The account SDK is loaded only when the account service is configured.
 
-Validation: **65 automated gameplay/progression/profile/cloud/Postgres tests, 27 regression browser checks, and 21 new-feature browser checks pass.** Final production touch/layout checks also pass on portrait, landscape, and 320px-wide phones. The long-operation browser checks accelerate animation timestamps while keeping the production physics and objective budgets unchanged. The new-feature browser tests cover real fullscreen, full multi-stage campaign victories and reward gifts, Q/E roll, persistence, ranked penalties, and the actual Supabase SDK with simulated provider responses. Live Google/Facebook/email login must be checked after activating your projects. No physical 4 GB or 8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
+Validation: **72 automated gameplay/progression/profile/cloud/Postgres tests, 27 regression browser checks, 21 progression/account browser checks, and 19 audio/music browser checks pass.** Final production touch/layout checks also pass on portrait, landscape, and 320px-wide phones. The long-operation browser checks accelerate animation timestamps while keeping the production physics and objective budgets unchanged. The new-feature browser tests cover real fullscreen, full multi-stage campaign victories and reward gifts, Q/E roll, persistence, ranked penalties, and the actual Supabase SDK with simulated provider responses. Live Google/Facebook/email login must be checked after activating your projects. No physical 4 GB or 8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
 
 For GitHub Pages, choose `skychrome-website` and `/ (root)` under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.

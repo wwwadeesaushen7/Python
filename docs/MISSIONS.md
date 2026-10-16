@@ -1,4 +1,4 @@
-# Skychrome v2.1.0 — long operations and roll controls
+# Skychrome v2.2.0 — long operations and roll controls
 
 Campaign and ranked games now use multi-stage operations. The new objective budgets replace the short v2.0 sorties; existing level unlocks, earned skins, profiles and account configuration remain compatible.
 
@@ -54,10 +54,10 @@ Wins still award 120–150 RP. Defeats, quits, and interrupted ranked flights co
 | Boost | Shift |
 | Pause | P / Escape |
 
-Q/E provide continuous 360-degree axial roll. Release to hold your current orientation; use the opposite direction to unwind. Steering follows the aircraft's roll orientation, including inverted flight. The aiming camera stays level, and the cannon muzzles and collision probes rotate with the visible aircraft. Touchscreens have separate left/right roll buttons.
+Q/E provide continuous 360-degree axial roll. Release either roll key to return smoothly to the normal level angle. Steering follows the aircraft's roll orientation, including inverted flight. The aiming camera stays level, and the cannon muzzles and collision probes rotate with the visible aircraft. Touchscreens have separate left/right roll buttons.
 
 Old saved keys migrate automatically. The old default E missile moves to F. If F already has a custom action, an unused key is chosen for missiles and displayed in Controls and the missile HUD. Other custom bindings are retained where they do not conflict with the new roll keys.
 
 ## Update your site
 
-Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.1.0.
+Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.2.0.

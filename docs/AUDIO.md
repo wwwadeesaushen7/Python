@@ -1,0 +1,33 @@
+# Skychrome v2.2.0 — audio and your own music
+
+The game includes separate original instrumental music for the lobby and the match, plus procedural aircraft and combat sound effects. No music account, external stream, or plugin is required.
+
+## Built-in audio
+
+- **Lobby:** Blue Horizon, a calm ambient theme at 80 BPM.
+- **Match:** Afterburn, a more energetic combat theme at 120 BPM.
+- Both are original 48-second loops bundled with the website. They crossfade when starting or leaving a match; pausing reduces music level. Browser audio starts after your first click, tap or keypress, and hidden tabs go silent.
+- Aircraft audio layers engine/exhaust noise, turbine whine, rumble and airflow. Afterburners raise engine power; first-person view softens wind. Cannons, missiles, impacts, explosions and nearby passes have separate effects, distance attenuation and stereo placement. These are synthesized effects, not recordings from real fighter aircraft.
+
+## Settings
+
+Open **Settings**, then use **Master volume**, **Sound effects volume**, **Background music**, and **Music volume**. Master mute silences both effects and music. Turning music off keeps aircraft and weapon sounds available.
+
+## Use music from your own files
+
+1. Open **Settings → Your soundtrack**.
+2. Under **Lobby**, choose a file for the flight deck. Under **Match**, choose another file for gameplay. You can use either or both slots.
+3. Use a browser-supported audio file, such as MP3, WAV, OGG, M4A, FLAC or AAC, under **50 MB per track**. Format support depends on the browser. An unsupported/corrupt file leaves your previous selection intact.
+4. The filename and save status appear under that slot. **Saved on this device** means the browser retained the file. If browser storage is blocked/full, **This session only** means it will need selecting again next time.
+5. **Preview 10s** previews that slot, then returns to the current lobby/match soundtrack. Starting or leaving a flight also ends a preview. Sound/music must be enabled and their volumes above zero.
+6. **Use default** removes the saved custom selection and restores the built-in theme for that slot.
+
+Files stay inside this browser's IndexedDB. They are never uploaded to Supabase or another server and are not included in account/player backups. The choice belongs to this device and website address. Clearing site data removes it. Keep the same website address when updating and retain the original audio files if you want to move them to another device.
+
+Custom songs are streamed through HTML audio; the game does not allocate a full decoded song buffer. Only two music players are retained, old object URLs are revoked on replacement, and short sound effects share a small noise buffer with a 24-voice limit. This keeps audio memory use bounded during long matches.
+
+## Website updates
+
+Keep `audio/` beside `index.html` and `assets/` in the extracted deployment folder. It contains the two MP3 themes. No Python, NumPy, FFmpeg or Node.js installation is needed to play the finished website.
+
+Source contributors can regenerate the original music with `python scripts/create-music.py` if NumPy and FFmpeg are installed. Those are authoring tools, not runtime dependencies.
