@@ -1,0 +1,66 @@
+CUTLINE STUDIO - WINDOWS GUIDE
+=============================
+
+This download lets you use Cutline in your browser on your own Windows PC.
+Windows 10/11, 64-bit, and internet access are needed for the first setup.
+Setup prepares the website automatically. You do not need to write code or use Git.
+
+1. EXTRACT THE DOWNLOAD
+   Open your Downloads folder.
+   Right-click the downloaded ZIP file and choose "Extract All".
+   Click "Extract".
+   Open the extracted folder that contains "1 - Setup.bat".
+   Do not run the files while they are still inside the ZIP.
+
+2. RUN SETUP ONCE
+   Double-click "1 - Setup.bat".
+   A terminal window opens and shows its progress.
+   It installs Python 3.12, Node.js, FFmpeg and Microsoft Visual C++ if missing,
+   then downloads the app's Python packages using verified HTTPS.
+   If you downloaded the source from GitHub, it also builds the website.
+   If an installer asks for Windows permission, review it and choose Yes
+   to continue. Setup can take several minutes depending on your internet.
+   Wait for "SETUP COMPLETE", then close that window.
+
+3. OPEN THE WEBSITE
+   Double-click "2 - Open Cutline.bat".
+   Your browser opens Cutline automatically after startup.
+   Keep the terminal window open while you use Cutline.
+   To stop it, go to that window and press Ctrl+C.
+   Each time you want to use Cutline again, use "2 - Open Cutline.bat".
+
+4. CREATE YOUR FIRST CLIP
+   Click "Browse files" and choose a video LONGER than 3 minutes.
+   For your first test, use a clear English speaking video around 4 minutes.
+   Leave the default settings, then click "Create my clips".
+   Wait for processing. The first video may download the Whisper model.
+   If that model is unavailable, the bundled recognizer handles English.
+   When clips are ready, click "Make it yours" on a clip.
+   Choose captions, add your text or music, then click "Export clip".
+   When "Your MP4 is ready" appears, click it to download the clip.
+
+IF SOMETHING DOES NOT WORK
+   If setup reports missing App Installer, install/update "App Installer"
+   by Microsoft in the Microsoft Store, then run Setup again.
+   If Windows or your organisation blocks running scripts, stop and ask
+   your administrator. Do not disable Windows security protections.
+   For an error, send a screenshot of the error window in the chat.
+   Setup does not require a Python or AI account or a paid API key.
+   YouTube may reject some downloads. Try uploading the video file instead.
+   Speech recognition can make mistakes. Check your clips before sharing.
+
+WHERE YOUR VIDEOS GO
+   Projects and clips are stored in the hidden .data folder alongside this
+   guide. Use Cutline's Delete Project button to remove a project and files.
+   Keep this folder if you want to keep your projects.
+
+ABOUT A PUBLIC WEBSITE
+   This runs on your computer. To give other people a website link, the app
+   still needs a separate hosting setup. No hosting account is needed to
+   test it on your Windows PC.
+
+TESTING NOTE
+   The website and processing have been tested in the Linux cloud machine.
+   Windows package availability and launcher logic were checked, but this
+   environment cannot execute Windows .bat files. Report any Windows error
+   so it can be corrected.
