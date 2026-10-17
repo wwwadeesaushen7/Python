@@ -8,6 +8,7 @@ from statistics import median
 
 RATIOS = {'portrait': (720,1280), 'square':(720,720), 'landscape':(1280,720)}
 TEMPLATES = {'highlight','studio','pop','minimal'}
+TRACKING_VERSION = 2
 
 
 def run(args, timeout=1800, cwd=None):
@@ -38,82 +39,196 @@ def validate_source(path, automatic=True):
     return info
 
 
-def track_speaker(source, start, end):
-    """Sample faces and favor mouth movement; this is a visual heuristic, not diarization."""
+def speaker_path(observations, confirm_samples=2):
+    """Confirm a face change, then put a hard cut at its first observed sample."""
+    points,pending = [],[]
+    center,subject = None,None
+    for observation in observations:
+        faces = observation['faces']
+        if not faces:
+            pending = []
+            if center is not None:
+                points.append({'time':observation['time'],'x':center,'cut':False})
+            continue
+        winner = max(faces,key=lambda face:face['score'])
+        if center is None:
+            center,subject = winner['x'],winner.get('id')
+            points.append({'time':observation['time'],'x':center,'cut':False})
+            continue
+        incumbent = (next((face for face in faces if face.get('id')==subject),None)
+                     if subject is not None else min(faces,key=lambda face:abs(face['x']-center)))
+        present = incumbent is not None and (subject is not None or abs(incumbent['x']-center)<.18)
+        if present:
+            center = incumbent['x']
+        points.append({'time':observation['time'],'x':center,'cut':False})
+        different = winner.get('id')!=subject if subject is not None and winner.get('id') is not None else abs(winner['x']-center)>=.18
+        changing = not present or (observation.get('speaking',True) and different and winner['score']>incumbent['score']+.03)
+        if not changing:
+            pending = []
+            continue
+        if pending:
+            same_candidate = pending[-1][2]==winner['id'] if winner.get('id') is not None else abs(pending[-1][1]-winner['x'])<.12
+            if not same_candidate:
+                pending = []
+        pending.append((len(points)-1,winner['x'],winner.get('id')))
+        if len(pending)>=confirm_samples:
+            # Analysis runs before rendering: confirmation adds no visible wait.
+            for index,(point_index,x,identity) in enumerate(pending):
+                points[point_index].update(x=x,cut=index==0)
+            center,subject = winner['x'],winner.get('id')
+            pending = []
+    return points
+
+
+def track_speaker(source, start, end, words=None):
+    """Visual mouth-motion heuristic; word timestamps can gate silent intervals."""
     import cv2
     import numpy as np
     capture = cv2.VideoCapture(str(source))
     detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    points, previous = [], []
-    center, challenger, challenge_time, missing = None, None, 0, 0
-    samples = max(1, math.ceil((end-start)*2))
-    for index in range(samples):
-        timestamp = start+index/2
-        capture.set(cv2.CAP_PROP_POS_MSEC, timestamp*1000)
-        ok, frame = capture.read()
-        if not ok:
-            break
-        height, width = frame.shape[:2]
-        small = cv2.resize(frame, (min(480,width), max(1,int(height*min(480,width)/width))))
-        gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-        faces = detector.detectMultiScale(gray, scaleFactor=1.15, minNeighbors=5, minSize=(28,28))
-        choices, current = [], []
-        for x,y,w,h in faces:
-            cx = (x+w/2)/small.shape[1]
-            mouth = cv2.resize(gray[y+int(h*.58):y+int(h*.9), x+int(w*.18):x+int(w*.82)], (32,16))
-            nearest = min(previous, key=lambda f:abs(f[0]-cx), default=None)
-            movement = float(np.mean(cv2.absdiff(mouth,nearest[1])))/255 if nearest and abs(nearest[0]-cx)<.16 else 0
-            # Avoid jumping between equally active faces. A larger face is preferred initially.
-            score = movement*3 + (w/small.shape[1])*.2
-            choices.append((score,cx))
-            current.append((cx,mouth))
-        if choices:
-            winner = max(choices)
-            incumbent = min(choices, key=lambda choice:abs(choice[1]-center)) if center is not None else None
-            if incumbent is None:
-                center = winner[1]
-            elif abs(incumbent[1]-center) <= .18:
-                missing = 0
-                center = incumbent[1]
-                if abs(winner[1]-center) > .18 and winner[0] > incumbent[0]+.08:
-                    challenge_time = challenge_time+.5 if challenger is not None and abs(challenger-winner[1]) < .12 else .5
-                    challenger = winner[1]
-                    # A new speaker must remain active; one mouth movement is not a cut.
-                    if challenge_time >= 2.5:
-                        center, challenger, challenge_time = winner[1], None, 0
+    observations, previous = [], []
+    next_identity = 0
+    word_index = 0
+    try:
+        for index in range(max(1,math.ceil((end-start)*4))):
+            timestamp = start+index/4
+            capture.set(cv2.CAP_PROP_POS_MSEC,timestamp*1000)
+            ok,frame = capture.read()
+            if not ok:
+                break
+            height,width = frame.shape[:2]
+            small = cv2.resize(frame,(min(480,width),max(1,int(height*min(480,width)/width))))
+            gray = cv2.cvtColor(small,cv2.COLOR_BGR2GRAY)
+            faces = detector.detectMultiScale(gray,scaleFactor=1.15,minNeighbors=5,minSize=(28,28))
+            choices,current,matched = [],[],set()
+            for x,y,w,h in faces:
+                cx = (x+w/2)/small.shape[1]
+                mouth = cv2.resize(gray[y+int(h*.58):y+int(h*.9),x+int(w*.18):x+int(w*.82)],(32,16))
+                forehead = cv2.resize(gray[y+int(h*.15):y+int(h*.4),x+int(w*.2):x+int(w*.8)],(32,16))
+                nearest_index = min((i for i in range(len(previous)) if i not in matched),key=lambda i:abs(previous[i][0]-cx),default=None)
+                nearest = previous[nearest_index] if nearest_index is not None else None
+                movement = 0
+                if nearest and abs(nearest[0]-cx)<.16:
+                    matched.add(nearest_index)
+                    identity = nearest[3]
+                    mouth_change = float(np.mean(cv2.absdiff(mouth,nearest[1])))
+                    head_change = float(np.mean(cv2.absdiff(forehead,nearest[2])))
+                    movement = max(0,mouth_change-.6*head_change)/255
                 else:
-                    challenger, challenge_time = None, 0
-            else:
-                missing += .5
-                if missing >= 1.5:
-                    center, missing, challenger, challenge_time = winner[1], 0, None, 0
-        else:
-            missing += .5
-            challenger, challenge_time = None, 0
-        if center is not None:
-            points.append({'time':round(timestamp-start,2),'x':round(center,4)})
-        previous = current
-    capture.release()
-    return points
+                    identity = next_identity
+                    next_identity += 1
+                choices.append({'id':identity,'x':round(cx,4),'score':movement*3+(w/small.shape[1])*.2})
+                current.append((cx,mouth,forehead,identity))
+            speaking = True
+            if words is not None:
+                while word_index<len(words) and words[word_index]['end']<timestamp-.15:
+                    word_index += 1
+                speaking = word_index<len(words) and words[word_index]['start']<=timestamp+.1
+            observations.append({'time':round(timestamp-start,3),'faces':choices,'speaking':speaking})
+            previous = current
+    finally:
+        capture.release()
+    return speaker_path(observations)
 
 
 def smooth_camera(points, dead_zone=.045, max_speed=.055, acceleration=.05):
-    """Ignore head jitter and bound pan speed/acceleration in source-width units."""
+    """Smooth only within a shot; never blend positions across a speaker cut."""
     if not points:
         return []
-    points = sorted(points, key=lambda point:point['time'])
-    targets = [median(p['x'] for p in points[max(0,i-2):i+3]) for i in range(len(points))]
-    position, velocity = targets[0], 0
-    result = [{'time':points[0]['time'], 'x':position}]
-    for index, point in enumerate(points[1:], 1):
-        dt = point['time']-result[-1]['time']
-        if dt <= 0:
-            continue
-        distance = targets[index]-position
-        desired = 0 if abs(distance) <= dead_zone else math.copysign(min(max_speed, (abs(distance)-dead_zone)*.8), distance)
-        velocity += max(-acceleration*dt, min(acceleration*dt, desired-velocity))
-        position = max(0, min(1, position+velocity*dt))
-        result.append({'time':point['time'], 'x':position})
+    shots = []
+    for point in sorted(points,key=lambda point:point['time']):
+        if not shots or point.get('cut'):
+            shots.append([])
+        shots[-1].append(point)
+    result = []
+    for shot in shots:
+        targets = [median(p['x'] for p in shot[max(0,i-2):i+3]) for i in range(len(shot))]
+        position,velocity = targets[0],0
+        result.append(dict(shot[0],x=position))
+        for index,point in enumerate(shot[1:],1):
+            dt = point['time']-result[-1]['time']
+            if dt<=0:
+                continue
+            distance = targets[index]-position
+            desired = 0 if abs(distance)<=dead_zone else math.copysign(min(max_speed,(abs(distance)-dead_zone)*.8),distance)
+            velocity += max(-acceleration*dt,min(acceleration*dt,desired-velocity))
+            position = max(0,min(1,position+velocity*dt))
+            result.append(dict(point,x=position))
+    return result
+
+
+def detect_split_screen(source, start, end):
+    """Conservatively find a persistent vertical divider near the frame center."""
+    import cv2
+    import numpy as np
+    capture = cv2.VideoCapture(str(source))
+    dividers = []
+    samples = min(7,max(1,math.ceil((end-start)*2)))
+    try:
+        for index in range(samples):
+            timestamp = start+(end-start)*(index+.5)/samples
+            capture.set(cv2.CAP_PROP_POS_MSEC,timestamp*1000)
+            ok,frame = capture.read()
+            if not ok:
+                continue
+            height,width = frame.shape[:2]
+            # Portrait sources that are already stacked keep their full scene.
+            if width<height:
+                return None
+            small = cv2.resize(frame,(480,max(2,round(height*480/width))))
+            region = small[int(small.shape[0]*.1):int(small.shape[0]*.9)].astype(np.float32)
+            differences = np.abs(region[:,1:]-region[:,:-1]).mean(axis=2)
+            coverage = (differences>18).mean(axis=0)
+            strength = differences.mean(axis=0)
+            low,high = round(480*.35),round(480*.65)
+            index = low+int(np.argmax((coverage*strength)[low:high]))
+            if coverage[index]>=.78 and strength[index]>=25:
+                dividers.append((index+1)/480)
+        if len(dividers)<max(1,math.ceil(samples*.7)):
+            return None
+        center = median(dividers)
+        if sum(abs(value-center)<.02 for value in dividers)<math.ceil(samples*.7):
+            return None
+        return round(center,4)
+    finally:
+        capture.release()
+
+
+def has_multiple_faces(source, start, end):
+    """Identify a shared wide camera with two separated faces across samples."""
+    import cv2
+    capture = cv2.VideoCapture(str(source))
+    detector = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_default.xml')
+    matches = 0
+    try:
+        for index in range(3):
+            capture.set(cv2.CAP_PROP_POS_MSEC,(start+(end-start)*(index+.5)/3)*1000)
+            ok,frame = capture.read()
+            if not ok:
+                continue
+            height,width = frame.shape[:2]
+            if width<height*1.2:
+                return False
+            small = cv2.resize(frame,(480,max(1,round(height*480/width))))
+            faces = detector.detectMultiScale(cv2.cvtColor(small,cv2.COLOR_BGR2GRAY),scaleFactor=1.15,minNeighbors=5,minSize=(28,28))
+            centers = [(x+w/2)/480 for x,y,w,h in faces]
+            if len(centers)>1 and max(centers)-min(centers)>.12:
+                matches += 1
+        return matches>=2
+    finally:
+        capture.release()
+
+
+def resolve_framing(source, clip, settings, auto_layout=None):
+    result = dict(settings)
+    if settings.get('framing')=='auto':
+        if auto_layout is None:
+            divider = detect_split_screen(source,clip['start'],clip['end'])
+            auto_layout = ({'framing':'stack','screen_layout':'side_by_side','split_at':divider}
+                           if divider is not None else {'framing':'speaker' if has_multiple_faces(source,clip['start'],clip['end']) else 'scene'})
+        result.update(auto_layout)
+        if result['framing']=='speaker':
+            result['tracking']=True
     return result
 
 
@@ -193,7 +308,7 @@ def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False)
             commands=[]
             for index,point in enumerate(tracking):
                 x=max(0,min(sw-cw,point['x']*sw-cw/2))
-                if index+1 < len(tracking):
+                if index+1 < len(tracking) and not tracking[index+1].get('cut'):
                     following=tracking[index+1]
                     next_x=max(0,min(sw-cw,following['x']*sw-cw/2))
                     interval=following['time']-point['time']
@@ -225,6 +340,26 @@ def scene_filter(ratio):
             f'[blurred][complete]overlay=(W-w)/2:(H-h)/2:shortest=1')
 
 
+def stacked_filter(info, ratio, screen_layout='side_by_side', split_at=.5):
+    """Fit each source panel into its own half without dropping either picture."""
+    width,height = RATIOS[ratio]
+    video = info['video']
+    sw,sh = int(video['width']),int(video['height'])
+    rotation = next((side.get('rotation',0) for side in video.get('side_data_list',[]) if 'rotation' in side),0)
+    if abs(int(rotation))%180==90:
+        sw,sh = sh,sw
+    if screen_layout=='side_by_side':
+        divider = max(2,min(sw-2,int(sw*split_at)//2*2))
+        crops = [f'crop={divider}:{sh}:0:0',f'crop={sw-divider}:{sh}:{divider}:0']
+    else:
+        divider = max(2,min(sh-2,int(sh*split_at)//2*2))
+        crops = [f'crop={sw}:{divider}:0:0',f'crop={sw}:{sh-divider}:0:{divider}']
+    panel = (f'scale={width}:{height//2}:force_original_aspect_ratio=decrease:'
+             f'force_divisible_by=2,pad={width}:{height//2}:(ow-iw)/2:(oh-ih)/2:color=0x17141c,setsar=1')
+    return (f'split=2[first][second];[first]{crops[0]},{panel}[top];'
+            f'[second]{crops[1]},{panel}[bottom];[top][bottom]vstack=inputs=2')
+
+
 def render(source, output, clip, settings, tracking=None, music=None, clean=False):
     source,output=Path(source).resolve(),Path(output).resolve()
     if music:
@@ -232,10 +367,16 @@ def render(source, output, clip, settings, tracking=None, music=None, clean=Fals
     ratio=settings.get('ratio','portrait')
     size=RATIOS[ratio]
     info=probe(source)
+    settings=resolve_framing(source,clip,settings)
     duration=clip['end']-clip['start']
     args=['ffmpeg','-hide_banner','-loglevel','error','-y','-ss',str(clip['start']),'-t',str(duration),'-i',str(source)]
     if music: args += ['-stream_loop','-1','-i',str(music)]
-    filters=scene_filter(ratio) if settings.get('framing')=='scene' else crop_filter(info,ratio,tracking if settings.get('tracking',True) else None,output.with_suffix('.tracking.txt'),relative_paths=True)
+    if settings.get('framing')=='stack':
+        filters=stacked_filter(info,ratio,settings.get('screen_layout','side_by_side'),settings.get('split_at',.5))
+    elif settings.get('framing')=='scene':
+        filters=scene_filter(ratio)
+    else:
+        filters=crop_filter(info,ratio,tracking if settings.get('tracking',True) else None,output.with_suffix('.tracking.txt'),relative_paths=True)
     subtitle=output.with_suffix('.ass')
     if not clean:
         write_subtitles(subtitle,clip['words'],clip['start'],duration,settings.get('template','highlight'),settings.get('text',''),settings.get('text_position','top'),settings.get('captions',True),size)

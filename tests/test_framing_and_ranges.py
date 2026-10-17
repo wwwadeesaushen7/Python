@@ -200,3 +200,57 @@ def test_range_still_exports_when_no_speech_is_detected(client,short_source,monk
     assert job['status']=='completed',job.get('error')
     assert 'No speech' in job['caption_notice']
     assert job['clips'][0]['words']==[]
+
+
+def test_existing_speaker_tracks_are_upgraded_once_on_export(client,short_source,monkeypatch):
+    with short_source.open('rb') as video:
+        response=client.post('/api/jobs',data={'settings':json.dumps({'mode':'range','start_time':1,'end_time':3,'captions':False,'framing':'scene'})},files={'file':('short.mp4',video,'video/mp4')})
+    job=store.get(response.json()['id'])
+    clip=job['clips'][0]
+    path=api.directory(job['id'])/f'clip-{clip["id"]}.json'
+    metadata=json.loads(path.read_text(encoding='utf-8'))
+    metadata.pop('tracking_version',None)
+    metadata['tracking']=[{'time':0,'x':.2},{'time':1,'x':.8}]
+    path.write_text(json.dumps(metadata),encoding='utf-8')
+    calls=[]
+    points=[{'time':0,'x':.2,'cut':False},{'time':1,'x':.8,'cut':True}]
+    def track(*args,**kwargs):
+        calls.append(args)
+        return points
+    monkeypatch.setattr(media,'track_speaker',track)
+    for _ in range(2):
+        result=client.post(f'/api/jobs/{job["id"]}/clips/{clip["id"]}/export',data={'settings':json.dumps({'framing':'speaker','captions':False})})
+        assert result.status_code==202
+        current=store.get(job['id'])['clips'][0]
+        assert current['export_status']=='completed',current.get('export_error')
+    upgraded=json.loads(path.read_text(encoding='utf-8'))
+    assert len(calls)==1
+    assert upgraded['tracking']==points
+    assert upgraded['tracking_version']==media.TRACKING_VERSION
+
+
+def test_auto_stack_is_persisted_and_reused_for_export(client,tmp_path):
+    source=tmp_path/'two-screens.mp4'
+    media.run(['ffmpeg','-v','error','-y','-f','lavfi','-i',
+               'color=red:s=320x180:r=10,drawbox=x=160:y=0:w=160:h=ih:color=blue:t=fill',
+               '-f','lavfi','-i','sine=frequency=440:sample_rate=16000',
+               '-t','2','-c:v','libx264','-threads','1','-c:a','aac',str(source)])
+    with source.open('rb') as video:
+        response=client.post('/api/jobs',data={'settings':json.dumps({'mode':'range','start_time':.25,'end_time':1.75,'captions':False,'framing':'auto'})},files={'file':('two-screens.mp4',video,'video/mp4')})
+    job=store.get(response.json()['id'])
+    assert job['status']=='completed',job.get('error')
+    clip=job['clips'][0]
+    assert clip['resolved_framing']=='stack' and clip['settings']['framing']=='auto'
+    metadata=json.loads((api.directory(job['id'])/f'clip-{clip["id"]}.json').read_text(encoding='utf-8'))
+    assert metadata['auto_layout']['framing']=='stack'
+    result=client.post(f'/api/jobs/{job["id"]}/clips/{clip["id"]}/export',data={'settings':json.dumps({'framing':'auto','captions':False})})
+    assert result.status_code==202
+    exported=store.get(job['id'])['clips'][0]
+    assert exported['export_status']=='completed',exported.get('export_error')
+    assert exported['export_framing']=='stack'
+    capture=cv2.VideoCapture(str(api.directory(job['id'])/Path(exported['export_url']).name))
+    ok,frame=capture.read()
+    capture.release()
+    assert ok
+    assert frame[320,360,2]>180 and frame[320,360,0]<30
+    assert frame[960,360,0]>180 and frame[960,360,2]<30

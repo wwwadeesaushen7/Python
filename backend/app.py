@@ -32,7 +32,9 @@ class Settings(BaseModel):
     captions: bool = True
     template: str = 'highlight'
     tracking: bool = True
-    framing: str = 'scene'
+    framing: str = 'auto'
+    screen_layout: str = 'side_by_side'
+    split_at: float = Field(default=.5,ge=.1,le=.9,allow_inf_nan=False)
     ratio: str = 'portrait'
     language: str = 'auto'
     text: str = Field(default='',max_length=160)
@@ -42,8 +44,10 @@ class Settings(BaseModel):
     remove_music: bool = False
 
     def checked(self):
-        if self.mode not in {'auto','range'} or self.framing not in {'scene','speaker'}:
+        if self.mode not in {'auto','range'} or self.framing not in {'auto','scene','speaker','stack'}:
             raise ValueError('Invalid clipping mode or framing.')
+        if self.screen_layout not in {'side_by_side','top_bottom'}:
+            raise ValueError('Choose side-by-side or top/bottom source screens.')
         if self.mode=='range' and (self.end_time is None or self.end_time-self.start_time < .25):
             raise ValueError('Choose an end time at least 0.25 seconds after the start time.')
         if self.template not in media.TEMPLATES or self.ratio not in media.RATIOS or self.text_position not in {'top','center','bottom'}:
@@ -62,6 +66,13 @@ def settings_from(raw):
 def validate_range(config, info):
     if config.get('mode')=='range' and config['end_time'] > info['duration']:
         raise ValueError(f'The end time is beyond this video. Choose a time within its {info["duration"]:.2f} seconds.')
+
+
+def prepare_framing(source, clip, config, metadata):
+    frame_settings=media.resolve_framing(source,clip,config,metadata.get('auto_layout'))
+    if config.get('framing')=='auto':
+        metadata['auto_layout']={key:frame_settings[key] for key in ('framing','screen_layout','split_at') if key in frame_settings}
+    return frame_settings
 
 
 def youtube_url(url):
@@ -213,17 +224,24 @@ def process(job_id):
             clip_id=uuid.uuid4().hex[:12]
             prefix=f'clip-{clip_id}'
             store.update(job_id,status='tracking',progress=50+int(index/len(candidates)*45),message=f'Preparing the framing for clip {index+1} of {len(candidates)}')
-            points=media.track_speaker(source,candidate['start'],candidate['end']) if config['tracking'] and config.get('framing')!='scene' else []
-            (folder/f'{prefix}.json').write_text(json.dumps({'clip':candidate,'tracking':points}),encoding='utf-8')
+            metadata={'clip':candidate,'tracking':[],'tracking_version':0}
+            frame_settings=prepare_framing(source,candidate,config,metadata)
+            points=[]
+            if frame_settings.get('tracking',True) and frame_settings.get('framing')=='speaker':
+                points=media.track_speaker(source,candidate['start'],candidate['end'],words=candidate['words'] or None)
+                metadata['tracking_version']=media.TRACKING_VERSION
+            metadata['tracking']=points
+            (folder/f'{prefix}.json').write_text(json.dumps(metadata),encoding='utf-8')
             store.update(job_id,status='rendering',message=f'Creating clip {index+1} of {len(candidates)}')
             clean=folder/f'{prefix}-clean.mp4'
-            media.render(source,clean,candidate,config,points,clean=True)
+            media.render(source,clean,candidate,frame_settings,points,clean=True)
             output=folder/f'{prefix}.mp4'
-            if config['captions']: media.render(source,output,candidate,config,points)
+            if config['captions']: media.render(source,output,candidate,frame_settings,points)
             else: shutil.copyfile(clean,output)
             thumb=folder/f'{prefix}.jpg'
             media.thumbnail(clean,thumb,timestamp=min(1,(candidate['end']-candidate['start'])/2))
             clip={'id':clip_id,'kind':'range' if manual else 'auto','title':candidate['title'],'start':candidate['start'],'end':candidate['end'],'duration':round(candidate['end']-candidate['start'],3),'transcript':candidate['text'],'words':[dict(w,start=round(w['start']-candidate['start'],3),end=round(w['end']-candidate['start'],3)) for w in candidate['words']],'url':f'/media/{job_id}/{output.name}','clean_url':f'/media/{job_id}/{clean.name}','thumbnail':f'/media/{job_id}/{thumb.name}','tracked':bool(points),'export_status':'idle','settings':config}
+            clip['resolved_framing']=frame_settings.get('framing','speaker')
             current=store.get(job_id)
             store.update(job_id,clips=current['clips']+[clip])
         store.update(job_id,status='completed',progress=100,message='Your clips are ready')
@@ -269,14 +287,17 @@ def render_export(job_id,clip_id,config,music,music_name=None):
         job=store.get(job_id)
         folder=directory(job_id)
         metadata=json.loads((folder/f'clip-{clip_id}.json').read_text(encoding='utf-8'))
+        source=Path(job['source'])
+        frame_settings=prepare_framing(source,metadata['clip'],config,metadata)
         points=metadata['tracking']
-        if config['tracking'] and config['framing']=='speaker' and not points:
-            points=media.track_speaker(Path(job['source']),metadata['clip']['start'],metadata['clip']['end'])
+        if frame_settings.get('tracking',True) and frame_settings.get('framing')=='speaker' and metadata.get('tracking_version')!=media.TRACKING_VERSION:
+            points=media.track_speaker(source,metadata['clip']['start'],metadata['clip']['end'],words=metadata['clip']['words'] or None)
             metadata['tracking']=points
-            (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata),encoding='utf-8')
+            metadata['tracking_version']=media.TRACKING_VERSION
+        (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata),encoding='utf-8')
         output=folder/f'export-{clip_id}-{uuid.uuid4().hex[:8]}.mp4'
-        media.render(Path(job['source']),output,metadata['clip'],config,points,music=music)
-        store.update_clip(job_id,clip_id,export_status='completed',export_url=f'/media/{job_id}/{output.name}',export_settings=config,export_error=None,music_file=music.name if music else None,music_name=music_name,music_url=f'/media/{job_id}/{music.name}' if music else None)
+        media.render(source,output,metadata['clip'],frame_settings,points,music=music)
+        store.update_clip(job_id,clip_id,export_status='completed',export_url=f'/media/{job_id}/{output.name}',export_settings=config,export_framing=frame_settings.get('framing','speaker'),export_error=None,music_file=music.name if music else None,music_name=music_name,music_url=f'/media/{job_id}/{music.name}' if music else None)
     except Exception as exc:
         LOG.exception('Export failed')
         store.update_clip(job_id,clip_id,export_status='error',export_error=str(exc)[-600:])

@@ -54,8 +54,16 @@ CHOOSING THE FRAMING
    "Full scene - people & objects" keeps the whole picture visible, including
    other people and things the speaker shows. A soft background fills the
    extra space when a wide video is placed in a vertical frame.
-   "Smooth speaker crop" gives a closer face crop with gentle camera movement.
-   Turn off "Follow the speaker" for a fixed center crop in that mode.
+   "Auto - speakers & split screens" chooses the layout automatically.
+   "Speaker cuts - active face" cuts straight to the detected speaker's face.
+   Speaker changes have no slide, drag, fade, or animated camera movement.
+   "Two screens - top & bottom" shows both pictures at once. A source with
+   side-by-side screens becomes left screen on top, right screen underneath.
+   Set Source layout to "Already top / bottom" for a source already stacked.
+   Adjust the divider if the source panels have different sizes.
+   If Auto guesses incorrectly, choose Two screens or Full scene yourself.
+   Face/speaker detection can make mistakes, so check the exported video.
+   Turn off "Follow the speaker" for a fixed center crop in Speaker cuts mode.
    To update an existing clip, use "Make it yours", open the Frame tab, choose
    a framing option, and click "Export clip". Changes apply to that export.
 

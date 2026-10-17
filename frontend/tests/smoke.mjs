@@ -15,9 +15,16 @@ page.on('pageerror',error=>errors.push(error.message));
 try {
   await page.goto(process.env.APP_URL||'http://127.0.0.1:5173');
   await page.getByRole('heading',{name:'Long video. Endless potential.'}).waitFor();
-  assert.equal(await page.getByRole('combobox',{name:'Framing',exact:true}).inputValue(),'scene');
+  assert.equal(await page.getByRole('combobox',{name:'Framing',exact:true}).inputValue(),'auto');
+  await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
+  await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('top_bottom');
+  await page.getByRole('slider',{name:'Screen divider position'}).focus();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.getByRole('slider',{name:'Screen divider position'}).inputValue(),'51');
+  await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('side_by_side');
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('speaker');
   await page.getByRole('switch',{name:'Follow the speaker'}).waitFor();
+  await page.getByText('Instant speaker changes · No transition',{exact:true}).waitFor();
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('scene');
   await page.getByRole('button',{name:'Create my clips'}).click();
   await page.getByRole('alert').filter({hasText:'Choose a video'}).waitFor();
@@ -59,6 +66,9 @@ try {
     await page.setViewportSize({width,height:900});
     await page.waitForTimeout(300);
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Overflow at ${width}px`);
+    await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Stack controls overflow at ${width}px`);
+    await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('scene');
   }
   await page.getByRole('tab',{name:'YouTube link'}).click();
   await page.getByRole('textbox',{name:'YouTube video link'}).fill('https://youtu.be/abcdefghijk');
@@ -79,6 +89,12 @@ try {
   assert.equal(finished.clips[0].kind,'range');
   await project.getByRole('button',{name:'Make it yours'}).click();
   await page.getByRole('button',{name:'Frame',exact:true}).click();
+  await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
+  await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('side_by_side');
+  await page.getByRole('button',{name:'Export clip',exact:true}).click();
+  await page.getByRole('link',{name:/Your MP4 is ready/}).waitFor({timeout:30000});
+  const stacked=await (await page.request.get(`/api/jobs/${job.id}`)).json();
+  assert.equal(stacked.clips[0].export_framing,'stack');
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('speaker');
   await page.getByRole('switch',{name:'Follow the speaker'}).waitFor();
   await page.getByRole('button',{name:'Export clip',exact:true}).click();
@@ -89,7 +105,7 @@ try {
   await page.locator('.nav-item').filter({hasText:'My projects'}).click();
   await page.getByRole('heading',{name:'Good stories live here.'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Browser smoke passed: validation, captions, full-scene/speaker controls, exact range entry/preview/upload/export, YouTube time fields, mobile navigation, and four responsive widths.');
+  console.log('Browser smoke passed: validation, captions, automatic/speaker-cut/stack controls, source layout and divider, real stacked and speaker exports, exact-range preview, YouTube fields, mobile navigation, and four responsive widths.');
 } finally {
   for(const id of created){for(let attempt=0;attempt<120;attempt++){const result=await page.request.delete(`/api/jobs/${id}`).catch(()=>null);if(!result||result.status()!==409)break;await new Promise(resolve=>setTimeout(resolve,250));}}
   await browser.close();

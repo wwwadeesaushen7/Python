@@ -1,11 +1,8 @@
 import json
-import os
 import subprocess
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-os.environ['CUTLINE_DATA_DIR'] = tempfile.mkdtemp(prefix='cutline-tests-')
 from fastapi.testclient import TestClient
 from backend.app import app, youtube_url
 from backend import media, speech, store

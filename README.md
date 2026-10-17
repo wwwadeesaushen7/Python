@@ -2,6 +2,8 @@
 
 A complete React + FastAPI video-clipping workspace. Upload a long video or import a public YouTube link, turn spoken passages into clips, then add captions, text, and your own music.
 
+The saved [editing preferences](docs/EDITING-PREFERENCES.md) specify direct cuts between speakers and top/bottom output for two source screens.
+
 ## Run
 
 Requirements: Python 3.12+, Node 22+, FFmpeg/FFprobe with libx264 and libass. On Debian/Ubuntu: `apt-get install ffmpeg`.
@@ -27,7 +29,9 @@ For automated checks: `./scripts/check.sh`. Runtime/development Python packages 
 - Import public YouTube watch, shortened, shorts, or live-recording links. Downloads use yt-dlp, FFmpeg, and the installed Node runtime. Live streams, playlists, private/sign-in videos, and restricted downloads are not supported. YouTube can reject downloads even when a video is publicly viewable; file upload is the alternative.
 - Transcribe timestamped words; group complete detected sentences or spoken passages ending at pauses; select non-overlapping passages. Clip length is a target, **not a hard timer**. A long uninterrupted passage may produce a longer clip or fewer clips than requested. Ranking uses transcript structure and simple keyword signals; there is no fabricated virality score.
 - Choose **Clip a time range** in the main interface or sidebar, upload a file or paste a YouTube link, and enter start/end times (for example `00:30` → `01:15`). Uploaded files have a source player, playhead shortcuts, and selected-range preview. This creates one clip using the requested boundaries, without automatic passage selection. Frame-based video cuts are accurate to the source frame grid. Turn captions off to skip speech recognition; when enabled, only the selected range is transcribed. Silent/no-speech ranges still export, with a caption notice when applicable. A selected range must be at least 0.25 seconds and within the source duration. YouTube times are validated after download.
-- **Full scene** is the default framing: retain the entire picture, including other people and objects being demonstrated, with a blurred background filling unused canvas space. It preserves context throughout the clip without having to guess what the speaker means. **Smooth speaker crop** is an optional closer view: median filtering, a hold area, limited pan speed/acceleration, and per-frame interpolation reduce jitter. A competing speaker must remain active for 2.5 seconds before the face selection changes. A temporary missed face holds the last position; if no face is ever detected, the crop stays centered. Choose portrait (720×1280), square (720×720), or landscape (1280×720).
+- **Auto** is the default framing. It looks for a persistent side-by-side divider and stacks detected screens; shared wide-camera conversations with multiple detected faces use speaker cuts; other scenes keep the complete picture. Detection is conservative and can be wrong. Select **Two screens** explicitly to control the source orientation and divider position, or **Full scene** to retain all people, demonstrations, and objects over a soft background.
+- **Speaker cuts** switches directly between detected speakers, without a slide, pan, zoom, dissolve, or added transition delay. Face/mouth motion is sampled at 4 Hz; recognized word timestamps gate silent intervals when available. Two consecutive observations confirm a change retrospectively at its first observed sample. Median filtering, a hold area, and bounded camera movement operate only within a shot. Neither smoothing nor interpolation crosses a speaker cut. The timing and speaker identity remain approximate visual estimates, not audio diarization.
+- **Two screens** puts the complete left panel on top and the right panel below, preserving the original combined audio. Manual controls also support sources already arranged top/bottom and unequal panel sizes. Panels are fitted without stretching or cropping away their content. Choose portrait (720×1280), square (720×720), or landscape (1280×720).
 - Optional burned-in word-timed captions in Spotlight, Studio, Pop, and Minimal templates. Spotlight highlights the active word.
 - Clip editor with video preview, seeking, captions, a custom text overlay (top/center/bottom), music upload, original/music volume sliders, framing, and tracking controls. Export renders an actual H.264/AAC MP4. Audio loops to match the clip, while speech audio is preserved at the selected volume.
 - Persistent projects, progress polling, searchable library, downloads, and deletion. Files and SQLite metadata stay in `.data/` until project deletion. Server restart marks interrupted processing/exports as failed rather than pretending they finished.
@@ -54,6 +58,7 @@ This is a **single shared workspace**, without accounts, tenant isolation, quota
 - `backend/speech.py`: Whisper/offline transcription, boundaries, and passage selection
 - `backend/media.py`: probing, face tracking, ASS captions, audio mix, MP4 rendering
 - `backend/store.py`: SQLite-backed project persistence
+- `docs/EDITING-PREFERENCES.md`: saved owner requirements for speaker cuts, stacked screens, and context
 - `frontend/src`: responsive workspace and editor
 - `tests/test_pipeline.py`: duration rules, URL validation, sentence boundaries, tracking rendering, safe captions, and API behavior
 
