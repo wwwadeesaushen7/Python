@@ -1,4 +1,4 @@
-# Skychrome v2.2.1 — ready-to-host website
+# Skychrome v2.3.0 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play the compiled website.
 
@@ -6,9 +6,21 @@ This folder contains the complete browser game. No Python or Node.js installatio
 
 1. Download the `skychrome-website` branch ZIP from GitHub and extract it.
 2. If you already enabled accounts, keep your configured `account-config.json` in the new folder. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, `audio/`, and `account-config.json`.
-3. Refresh your game website. The flight deck should show **v2.2.1**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
+3. Refresh your game website. The flight deck should show **v2.3.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
 
 Launch requests real browser fullscreen. If the browser does not allow it, the game starts in its window. Escape exits fullscreen and pauses; P pauses/resumes.
+
+## Mobile controls in v2.3.0
+
+**This update changes mobile controls and layout. PC keyboard/mouse controls, layout, physics, graphics, enemies and sound stay the same.**
+
+- **Two independent sticks:** left steers; right moves the gun sight. Holding the aiming stick also fires by default, so two thumbs can fly, aim and shoot together. Releasing the aim stick holds the sight in place.
+- **LOCK / NEXT:** track the predicted lead of a visible hostile and cycle targets. Dragging the aim stick overrides tracking. CENTER resets the sight. Tracking does not steer or fire automatically on its own.
+- **Touch settings:** tap ☷ at the top of the flight or open Mobile controls in Settings. Adjust aiming sensitivity, stick dead zone, stick size, left-handed layout, target tracking, and aim-and-fire. Preferences are saved separately from PC controls.
+- Separate FIRE, BOOST, MISSILE and ROLL buttons remain available. Action targets are at least 44px; the missile label shows recharge time.
+- Mobile flights fill the available viewport even when native fullscreen is unsupported. Portrait, landscape, smaller phones and tablets have a responsive control layout with safe-area spacing. Device rotation pauses safely; canceled touches, pause and focus loss clear held inputs.
+
+See [docs/MOBILE.md](docs/MOBILE.md) for the mobile flight guide. Existing player profiles, progress, custom music and account configuration remain compatible.
 
 ## Cannon sound update in v2.2.1
 
@@ -61,6 +73,6 @@ Low, Balanced, and High remain fixed graphics presets. Automatic resolution is a
 
 The renderer retains its existing pixel/entity/effect limits, batching, and light water shader. Skin rewards add no downloaded textures or aircraft models. The account SDK is loaded only when the account service is configured.
 
-v2.2.1 validation: **74 automated gameplay/profile/cloud/Postgres tests and 23 audio/music browser checks pass.** Audio checks exercise actual output from mouse, Space and enemy firing, sustained fire, release, background ducking/recovery, independent muting, custom files, storage and phone layout. The v2.2.0 update also passed 27 general browser checks and 21 progression/account checks. Live account providers still require project activation. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for software-rendering measurements and their limits.
+v2.3.0 validation: **78 automated tests, 20 mobile-control browser checks, and 27 general browser checks pass.** The mobile suite uses actual simultaneous touch inputs and covers live aiming/hostile damage, tracking, release/cancel safety, preferences, fullscreen fallback, orientation, scrolling, small phones and tablets. The PC comparison confirms identical bounds and computed styles for 18 UI elements in lobby, fullscreen flight and paused window, plus identical keyboard-control dialog HTML. Simulation, renderer, audio and the existing stylesheet remain byte-for-byte unchanged. Live account providers still require project activation. No physical mobile device or 4 GB/8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier rendering measurements.
 
 For GitHub Pages, choose `skychrome-website` and `/ (root)` under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.
