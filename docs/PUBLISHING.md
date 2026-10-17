@@ -2,7 +2,7 @@
 
 Publishing the **Codex environment** saves the development setup. It does not put the website online. The Windows launcher also runs only on your computer.
 
-This guide uses Render as one possible host. Cutline needs a paid server that keeps running, plus a persistent disk for videos and projects. Static website hosting alone cannot run the Python/FFmpeg processing. Check the host's current [pricing](https://render.com/pricing) before creating a paid service. Provider pricing, screens, and upload limits could not be verified from this development environment.
+This guide covers a paid Render service with a persistent disk for videos and projects. For an experimental credit-limited cloud demo with English-only recognition and temporary files, use the [Railway Trial/Free guide](FREE-CLOUD-DEMO.md). Static website hosting alone cannot run the Python/FFmpeg processing. Check the host's current [pricing](https://render.com/pricing) before creating a paid service. Provider pricing, screens, and upload limits could not be verified from this development environment.
 
 ## What this deployment provides
 

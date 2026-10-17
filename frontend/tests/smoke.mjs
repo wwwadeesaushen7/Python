@@ -23,6 +23,11 @@ try {
     await page.keyboard.press('Escape');
   }
   assert.equal(await page.locator('.storage-notice').count(),health.temporary_storage?1:0);
+  if(health.free_demo){
+    assert.equal(await page.locator('.language-setting select').inputValue(),'en');
+    assert.equal(await page.locator('.language-setting select').isDisabled(),true);
+    await page.getByText('Free demo · English recognition',{exact:true}).waitFor();
+  }
   assert.equal(await page.getByRole('combobox',{name:'Framing',exact:true}).inputValue(),'auto');
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
   await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('top_bottom');

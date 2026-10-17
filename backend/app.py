@@ -16,6 +16,12 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, ValidationError
 
+# Apply the small-memory demo profile before loading the media/speech libraries.
+FREE_DEMO = os.environ.get('CUTLINE_FREE_DEMO') == '1'
+if FREE_DEMO:
+    os.environ.update(CUTLINE_SPEECH_ENGINE='offline', CUTLINE_TEMPORARY_STORAGE='1',
+                      OMP_NUM_THREADS='1', OPENCV_FOR_THREADS_NUM='1')
+
 from . import media, speech, store
 from .access import PrivateSiteAuth
 
@@ -123,7 +129,7 @@ app.add_middleware(PrivateSiteAuth)
 
 @app.get('/api/health')
 def health():
-    return {'status':'ok','ffmpeg':bool(shutil.which('ffmpeg')),'speech_model':'Whisper with bundled English fallback','min_duration':180,'temporary_storage':os.environ.get('CUTLINE_TEMPORARY_STORAGE')=='1'}
+    return {'status':'ok','ffmpeg':bool(shutil.which('ffmpeg')),'speech_model':'Bundled English recognition' if FREE_DEMO else 'Whisper with bundled English fallback','min_duration':180,'temporary_storage':os.environ.get('CUTLINE_TEMPORARY_STORAGE')=='1','free_demo':FREE_DEMO}
 
 
 @app.get('/api/jobs')

@@ -14,3 +14,4 @@
 
 .storage-notice > svg { margin-top: 2px; }
 .storage-notice strong { display: block; font-weight: 650; }
+.storage-notice p > span { display: block; }

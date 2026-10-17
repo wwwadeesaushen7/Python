@@ -23,9 +23,15 @@ For a single production-style process, build first with `cd frontend && npm run 
 
 For automated checks: `./scripts/check.sh`. Runtime/development Python packages are pinned in `requirements.lock.txt`; the frontend uses `npm ci` with `package-lock.json`.
 
-## Publish a private test site
+## Publish online
 
-Follow the [Windows browser publishing guide](docs/PUBLISHING.md) to host the app using the included Dockerfile, a persistent disk, and a site password. The container requires `CUTLINE_SITE_USERNAME` and `CUTLINE_SITE_PASSWORD` before it starts. This protects one shared workspace; it does not add separate user accounts. Publishing a Codex environment does not publish the website.
+For the credit-limited cloud demo selected for this project, follow the [Railway Trial/Free browser guide](docs/FREE-CLOUD-DEMO.md). Railway's official documentation currently lists a one-time $5 trial grant for up to 30 days, followed by a $0 Free plan with $1 of resource credit each month. Availability is limited by credits and resources; this is not an unlimited hosting allowance. Set the site username/password and `CUTLINE_FREE_DEMO=1`, and deploy from `codex/cutline-studio`. No files need uploading manually. `railway.json` selects the Dockerfile and health check.
+
+This profile uses lighter English-only speech recognition and defaults to one clip. Native English recognition runs in a child process so it cannot hold the web server's Python interpreter during a long utterance. Your computer can be off; projects and videos use temporary storage and can disappear after a restart/rebuild. The interface explains these limits. This is an experimental demo for small videos, with no processing-time guarantee.
+
+The [paid-hosting guide](docs/PUBLISHING.md) covers the root Dockerfile with a persistent disk instead. Both deployments require `CUTLINE_SITE_USERNAME` and `CUTLINE_SITE_PASSWORD`, protecting one shared workspace without separate user accounts. Publishing a Codex environment does not publish the website.
+
+Hugging Face's current documentation requires a paid plan to create Docker Spaces, even though CPU Basic has no hourly compute charge. It is not the zero-cost deployment path for this app.
 
 ## What works
 

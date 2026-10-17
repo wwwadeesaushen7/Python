@@ -1,6 +1,8 @@
 """Timestamped speech and sentence-aware, non-overlapping highlight selection."""
 import os
+import json
 import re
+import sys
 import threading
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -39,6 +41,21 @@ def decode_audio(source: Path, directory: Path, start=0, end=None):
 
 
 def offline_transcribe(source, cache, start=0, end=None):
+    if os.environ.get('CUTLINE_FREE_DEMO') == '1':
+        # Native recognition can hold Python's GIL for a long utterance. Keep it
+        # outside the web process so health checks and progress stay responsive.
+        from .media import run
+        with TemporaryDirectory(prefix='speech-', dir=cache.parent) as temporary:
+            output = Path(temporary) / 'result.json'
+            args = [sys.executable, '-m', 'backend.speech_worker', str(Path(source).resolve()), str(output), '--start', str(start)]
+            if end is not None:
+                args += ['--end', str(end)]
+            run(args, timeout=1800, cwd=Path(__file__).resolve().parents[1])
+            return json.loads(output.read_text(encoding='utf-8'))
+    return _offline_transcribe(source, cache, start, end)
+
+
+def _offline_transcribe(source, cache, start=0, end=None):
     """Bundled English model: no credentials or network download required."""
     from pocketsphinx import Decoder, Segmenter
     from .media import run
