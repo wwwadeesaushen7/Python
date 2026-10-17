@@ -7,13 +7,18 @@ import { execFileSync } from 'node:child_process';
 
 const folder=mkdtempSync(join(tmpdir(),'cutline-browser-'));
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
-const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const page=await browser.newPage({baseURL:process.env.APP_URL||'http://127.0.0.1:5173',viewport:{width:1440,height:1000}});
 page.setDefaultTimeout(10000);
 const errors=[];
+const created=[];
 page.on('pageerror',error=>errors.push(error.message));
 try {
   await page.goto(process.env.APP_URL||'http://127.0.0.1:5173');
   await page.getByRole('heading',{name:'Long video. Endless potential.'}).waitFor();
+  assert.equal(await page.getByRole('combobox',{name:'Framing',exact:true}).inputValue(),'scene');
+  await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('speaker');
+  await page.getByRole('switch',{name:'Follow the speaker'}).waitFor();
+  await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('scene');
   await page.getByRole('button',{name:'Create my clips'}).click();
   await page.getByRole('alert').filter({hasText:'Choose a video'}).waitFor();
   await page.getByRole('tab',{name:'YouTube link'}).click();
@@ -36,18 +41,57 @@ try {
   execFileSync('ffmpeg',['-v','error','-y','-f','lavfi','-i','color=blue:s=160x90:r=5','-f','lavfi','-i','sine=frequency=440:sample_rate=16000','-t','1','-c:v','libx264','-c:a','aac',video]);
   await page.locator('input[type=file]').setInputFiles(video);
   await page.getByRole('alert').filter({hasText:'longer than 3 minutes'}).waitFor();
+  await page.getByRole('group',{name:'Clipping mode'}).getByRole('button',{name:/Clip a time range/}).click();
+  await page.getByRole('heading',{name:'Your video. Your exact moment.'}).waitFor();
+  assert.equal(await page.getByRole('textbox',{name:'End time',exact:true}).inputValue(),'0:01');
+  await page.getByRole('textbox',{name:'Start time',exact:true}).fill('0:00.75');
+  await page.getByRole('textbox',{name:'End time',exact:true}).fill('0:00.25');
+  await page.getByRole('button',{name:'Cut this range',exact:true}).click();
+  await page.getByRole('alert').filter({hasText:'valid start and end times'}).waitFor();
+  await page.getByRole('textbox',{name:'End time',exact:true}).fill('0:02');
+  await page.getByRole('button',{name:'Cut this range',exact:true}).click();
+  await page.getByRole('alert').filter({hasText:'beyond your'}).waitFor();
+  await page.getByRole('textbox',{name:'Start time',exact:true}).fill('0:00.25');
+  await page.getByRole('textbox',{name:'End time',exact:true}).fill('0:00.75');
+  await page.getByRole('button',{name:'Preview selected range',exact:true}).click();
+  await page.waitForFunction(()=>{const v=document.querySelector('.range-source-preview video');return v?.paused&&v.currentTime>=.7&&v.currentTime<.85;});
   for (const width of [320,390,768,1440]) {
     await page.setViewportSize({width,height:900});
     await page.waitForTimeout(300);
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Overflow at ${width}px`);
   }
+  await page.getByRole('tab',{name:'YouTube link'}).click();
+  await page.getByRole('textbox',{name:'YouTube video link'}).fill('https://youtu.be/abcdefghijk');
+  await page.getByText('Enter the times from the YouTube player.',{exact:false}).waitFor();
+  assert.equal(await page.getByRole('textbox',{name:'Start time',exact:true}).inputValue(),'0:00.25');
+  await page.getByRole('tab',{name:'Upload a video'}).click();
+  const responsePromise=page.waitForResponse(r=>r.url().endsWith('/api/jobs')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'Cut this range',exact:true}).click();
+  const response=await responsePromise;
+  assert.equal(response.status(),202);
+  const job=await response.json();
+  created.push(job.id);
+  const project=page.locator(`article[data-project-id="${job.id}"]`);
+  await project.getByText('Ready to share',{exact:true}).waitFor({timeout:30000});
+  const finished=await (await page.request.get(`/api/jobs/${job.id}`)).json();
+  assert.equal(finished.clips.length,1);
+  assert.equal(finished.clips[0].duration,.5);
+  assert.equal(finished.clips[0].kind,'range');
+  await project.getByRole('button',{name:'Make it yours'}).click();
+  await page.getByRole('button',{name:'Frame',exact:true}).click();
+  await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('speaker');
+  await page.getByRole('switch',{name:'Follow the speaker'}).waitFor();
+  await page.getByRole('button',{name:'Export clip',exact:true}).click();
+  await page.getByRole('link',{name:/Your MP4 is ready/}).waitFor({timeout:30000});
+  await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Open navigation'}).click();
   await page.locator('.nav-item').filter({hasText:'My projects'}).click();
   await page.getByRole('heading',{name:'Good stories live here.'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Browser smoke passed: source validation, caption selection, toggles, dialog, video duration, mobile navigation, and four responsive widths.');
+  console.log('Browser smoke passed: validation, captions, full-scene/speaker controls, exact range entry/preview/upload/export, YouTube time fields, mobile navigation, and four responsive widths.');
 } finally {
+  for(const id of created){for(let attempt=0;attempt<120;attempt++){const result=await page.request.delete(`/api/jobs/${id}`).catch(()=>null);if(!result||result.status()!==409)break;await new Promise(resolve=>setTimeout(resolve,250));}}
   await browser.close();
   rmSync(folder,{recursive:true,force:true});
 }

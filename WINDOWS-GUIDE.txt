@@ -40,6 +40,25 @@ Setup prepares the website automatically. You do not need to write code or use G
    Choose captions, add your text or music, then click "Export clip".
    When "Your MP4 is ready" appears, click it to download the clip.
 
+5. CUT A SPECIFIC TIME RANGE
+   Click "Clip a time range" on the main screen or in the left menu.
+   Upload your video, or paste a public YouTube link.
+   Enter the start and end times. For example, 00:30 to 01:15 cuts 45 seconds.
+   With an uploaded file, use the player and "Use playhead" buttons to set
+   your times, then "Preview selected range" to check the selection.
+   Turn off "Auto captions" for the quickest cut, or enable it for subtitles.
+   Click "Cut this range". The single clip appears in My projects.
+   This mode also accepts videos shorter than 3 minutes and silent videos.
+
+CHOOSING THE FRAMING
+   "Full scene - people & objects" keeps the whole picture visible, including
+   other people and things the speaker shows. A soft background fills the
+   extra space when a wide video is placed in a vertical frame.
+   "Smooth speaker crop" gives a closer face crop with gentle camera movement.
+   Turn off "Follow the speaker" for a fixed center crop in that mode.
+   To update an existing clip, use "Make it yours", open the Frame tab, choose
+   a framing option, and click "Export clip". Changes apply to that export.
+
 IF SOMETHING DOES NOT WORK
    Setup version 2 does not need App Installer, Microsoft Store, or WinGet.
    The setup window should say "DIRECT SETUP (VERSION 2)". If it does not,
@@ -58,8 +77,9 @@ UPDATING AN EXISTING COPY
    Copy all files and folders INSIDE it into your existing Cutline folder.
    Choose "Replace the files in the destination" when Windows asks.
    Copying these files preserves your .data, .tools, and .venv folders.
-   Use "2 - Open Cutline.bat" again after copying finishes.
-   For the audio-decoding and UTF-8 processing fix, Setup is not needed again.
+   Run "1 - Setup.bat" again to build the updated website interface.
+   Existing tools are reused. Wait for "SETUP COMPLETE".
+   Use "2 - Open Cutline.bat" again afterward.
    Previously failed projects stay failed; upload the video or paste the
    YouTube link again to create a new project with the corrected code.
 

@@ -24,11 +24,15 @@ ACTIVE={'queued','downloading','analyzing','transcribing','tracking','rendering'
 ROOT = Path(__file__).resolve().parents[1]
 
 class Settings(BaseModel):
+    mode: str = 'auto'
+    start_time: float = Field(default=0,ge=0,le=7200,allow_inf_nan=False)
+    end_time: float | None = Field(default=None,gt=0,le=7200,allow_inf_nan=False)
     target: int = Field(default=45, ge=15, le=120)
     count: int = Field(default=3, ge=1, le=6)
     captions: bool = True
     template: str = 'highlight'
     tracking: bool = True
+    framing: str = 'scene'
     ratio: str = 'portrait'
     language: str = 'auto'
     text: str = Field(default='',max_length=160)
@@ -38,6 +42,10 @@ class Settings(BaseModel):
     remove_music: bool = False
 
     def checked(self):
+        if self.mode not in {'auto','range'} or self.framing not in {'scene','speaker'}:
+            raise ValueError('Invalid clipping mode or framing.')
+        if self.mode=='range' and (self.end_time is None or self.end_time-self.start_time < .25):
+            raise ValueError('Choose an end time at least 0.25 seconds after the start time.')
         if self.template not in media.TEMPLATES or self.ratio not in media.RATIOS or self.text_position not in {'top','center','bottom'}:
             raise ValueError('Invalid caption style, framing, or text position.')
         if self.language not in {'auto','en','es','fr','de','pt','hi','ja','ko','it','si'}:
@@ -47,7 +55,13 @@ class Settings(BaseModel):
 
 def settings_from(raw):
     try: return Settings.model_validate_json(raw).checked()
-    except (ValidationError,ValueError): raise HTTPException(422,'Check your clip settings and try again.')
+    except ValidationError: raise HTTPException(422,'Check your clip settings and try again.')
+    except ValueError as exc: raise HTTPException(422,str(exc))
+
+
+def validate_range(config, info):
+    if config.get('mode')=='range' and config['end_time'] > info['duration']:
+        raise ValueError(f'The end time is beyond this video. Choose a time within its {info["duration"]:.2f} seconds.')
 
 
 def youtube_url(url):
@@ -137,7 +151,8 @@ async def create_job(settings:str=Form('{}'),url:str=Form(''),file:UploadFile|No
             source=folder/f'source{suffix}'
             await save_upload(file,source)
             try:
-                await run_in_threadpool(media.validate_source,source)
+                info=await run_in_threadpool(media.validate_source,source,config['mode']=='auto')
+                validate_range(config,info)
             except ValueError as exc:
                 raise HTTPException(422,str(exc))
         title=Path(file.filename).name if file and file.filename else 'YouTube video'
@@ -156,28 +171,49 @@ def process(job_id):
         job=store.get(job_id)
         folder=directory(job_id)
         source=Path(job['source']) if job['source'] else None
+        config=job['settings']
+        manual=config.get('mode')=='range'
         if job['youtube']:
             store.update(job_id,status='downloading',progress=5,message='Importing your YouTube video')
             import sys
-            media.run([sys.executable,'-m','yt_dlp','--ignore-config','--no-playlist','--js-runtimes','node','--socket-timeout','20','--retries','1','--extractor-retries','1','--max-filesize','2G','--match-filter','duration > 180 & duration <= 7200 & !is_live','-f','bv*[height<=1080]+ba/b[height<=1080]','--merge-output-format','mp4','-o',str(folder/'source.%(ext)s'),'--write-info-json','--no-progress',job['youtube']],timeout=1200)
+            minimum=0 if manual else 180
+            media.run([sys.executable,'-m','yt_dlp','--ignore-config','--no-playlist','--js-runtimes','node','--socket-timeout','20','--retries','1','--extractor-retries','1','--max-filesize','2G','--match-filter',f'duration > {minimum} & duration <= 7200 & !is_live','-f','bv*[height<=1080]+ba/b[height<=1080]','--merge-output-format','mp4','-o',str(folder/'source.%(ext)s'),'--write-info-json','--no-progress',job['youtube']],timeout=1200)
             source=next((p for p in folder.glob('source.*') if p.suffix in {'.mp4','.mkv','.webm','.mov'}),None)
-            if not source: raise ValueError('YouTube import did not produce a video. Use a public video longer than 3 minutes and shorter than 2 hours, or upload the file.')
+            if not source: raise ValueError('YouTube import did not produce a video. Use a public, recorded video under 2 hours, or upload the file. Automatic highlights need over 3 minutes.')
             metadata=next(folder.glob('*.info.json'),None)
             title=json.loads(metadata.read_text(encoding='utf-8')).get('title','YouTube video') if metadata else 'YouTube video'
             store.update(job_id,source=str(source),title=title)
         store.update(job_id,status='analyzing',progress=12,message='Checking your video and audio')
-        info=media.validate_source(source)
-        store.update(job_id,duration=info['duration'],status='transcribing',progress=20,message='Listening for complete thoughts. First run may download the speech model.')
-        config=job['settings']
-        transcript=speech.transcribe(source,folder/'transcript.json',config['language'])
-        candidates=speech.select_clips(transcript['words'],config['target'],config['count'])
-        store.update(job_id,language=transcript['language'],speech_engine=transcript.get('engine','whisper'),message=f'Found {len(candidates)} complete moments',progress=50)
+        info=media.validate_source(source,automatic=not manual)
+        validate_range(config,info)
+        store.update(job_id,duration=info['duration'])
+        if manual:
+            start,end=config['start_time'],config['end_time']
+            words=[]
+            if config['captions'] and info['audio']:
+                store.update(job_id,status='transcribing',progress=20,message='Adding captions to your selected time range')
+                try:
+                    transcript=speech.transcribe(source,folder/'transcript.json',config['language'],start=start,end=end)
+                    words=[dict(w,start=max(start,w['start']),end=min(end,w['end'])) for w in transcript['words'] if w['end']>start and w['start']<end]
+                    store.update(job_id,language=transcript['language'],speech_engine=transcript.get('engine','whisper'))
+                except speech.NoSpeechError:
+                    store.update(job_id,caption_notice='No speech was detected in this range. Your clip is available without captions.')
+            elif config['captions']:
+                store.update(job_id,caption_notice='This video has no audio track. Your clip is available without captions.')
+            title=f'{start:g}s – {end:g}s'
+            candidates=[{'start':start,'end':end,'title':title,'text':' '.join(w['text'] for w in words),'words':words}]
+            store.update(job_id,progress=50,message='Your exact time range is ready to render')
+        else:
+            store.update(job_id,status='transcribing',progress=20,message='Listening for complete thoughts. First run may download the speech model.')
+            transcript=speech.transcribe(source,folder/'transcript.json',config['language'])
+            candidates=speech.select_clips(transcript['words'],config['target'],config['count'])
+            store.update(job_id,language=transcript['language'],speech_engine=transcript.get('engine','whisper'),message=f'Found {len(candidates)} complete moments',progress=50)
         for index,candidate in enumerate(candidates):
             candidate['end']=min(candidate['end'],info['duration'])
             clip_id=uuid.uuid4().hex[:12]
             prefix=f'clip-{clip_id}'
-            store.update(job_id,status='tracking',progress=50+int(index/len(candidates)*45),message=f'Following the speaker in clip {index+1} of {len(candidates)}')
-            points=media.track_speaker(source,candidate['start'],candidate['end']) if config['tracking'] else []
+            store.update(job_id,status='tracking',progress=50+int(index/len(candidates)*45),message=f'Preparing the framing for clip {index+1} of {len(candidates)}')
+            points=media.track_speaker(source,candidate['start'],candidate['end']) if config['tracking'] and config.get('framing')!='scene' else []
             (folder/f'{prefix}.json').write_text(json.dumps({'clip':candidate,'tracking':points}),encoding='utf-8')
             store.update(job_id,status='rendering',message=f'Creating clip {index+1} of {len(candidates)}')
             clean=folder/f'{prefix}-clean.mp4'
@@ -186,8 +222,8 @@ def process(job_id):
             if config['captions']: media.render(source,output,candidate,config,points)
             else: shutil.copyfile(clean,output)
             thumb=folder/f'{prefix}.jpg'
-            media.thumbnail(clean,thumb)
-            clip={'id':clip_id,'title':candidate['title'],'start':candidate['start'],'end':candidate['end'],'duration':round(candidate['end']-candidate['start'],2),'transcript':candidate['text'],'words':[dict(w,start=round(w['start']-candidate['start'],3),end=round(w['end']-candidate['start'],3)) for w in candidate['words']],'url':f'/media/{job_id}/{output.name}','clean_url':f'/media/{job_id}/{clean.name}','thumbnail':f'/media/{job_id}/{thumb.name}','tracked':bool(points),'export_status':'idle','settings':config}
+            media.thumbnail(clean,thumb,timestamp=min(1,(candidate['end']-candidate['start'])/2))
+            clip={'id':clip_id,'kind':'range' if manual else 'auto','title':candidate['title'],'start':candidate['start'],'end':candidate['end'],'duration':round(candidate['end']-candidate['start'],3),'transcript':candidate['text'],'words':[dict(w,start=round(w['start']-candidate['start'],3),end=round(w['end']-candidate['start'],3)) for w in candidate['words']],'url':f'/media/{job_id}/{output.name}','clean_url':f'/media/{job_id}/{clean.name}','thumbnail':f'/media/{job_id}/{thumb.name}','tracked':bool(points),'export_status':'idle','settings':config}
             current=store.get(job_id)
             store.update(job_id,clips=current['clips']+[clip])
         store.update(job_id,status='completed',progress=100,message='Your clips are ready')
@@ -234,7 +270,7 @@ def render_export(job_id,clip_id,config,music,music_name=None):
         folder=directory(job_id)
         metadata=json.loads((folder/f'clip-{clip_id}.json').read_text(encoding='utf-8'))
         points=metadata['tracking']
-        if config['tracking'] and not points:
+        if config['tracking'] and config['framing']=='speaker' and not points:
             points=media.track_speaker(Path(job['source']),metadata['clip']['start'],metadata['clip']['end'])
             metadata['tracking']=points
             (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata),encoding='utf-8')
