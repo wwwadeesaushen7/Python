@@ -7,8 +7,16 @@ from pathlib import Path
 from statistics import median
 
 RATIOS = {'portrait': (720,1280), 'square':(720,720), 'landscape':(1280,720)}
+QUALITIES = {'480p': {'scale': 2/3, 'crf': 26, 'audio': '96k'},
+             '720p': {'scale': 1, 'crf': 23, 'audio': '128k'},
+             '1080p': {'scale': 1.5, 'crf': 20, 'audio': '192k'}}
 TEMPLATES = {'highlight','studio','pop','minimal'}
 TRACKING_VERSION = 3
+
+
+def output_size(ratio, quality='720p'):
+    scale = QUALITIES[quality]['scale']
+    return tuple(max(2, round(dimension*scale/2)*2) for dimension in RATIOS[ratio])
 
 
 def run(args, timeout=1800, cwd=None):
@@ -272,10 +280,11 @@ def ass_escape(text):
 def write_subtitles(path, words, offset, duration, template='highlight', overlay='', position='top', captions=True, size=(720,1280)):
     width,height = size
     template = template if template in TEMPLATES else 'highlight'
-    font_size = 45 if width==720 else 54
+    scale = min(width,height)/720
+    font_size = round((54 if width>height else 45)*scale)
     primary = '&H00FFFFFF'
     if template=='pop': primary='&H0068F5FF'
-    border = 3 if template in ('highlight','pop') else 1.5
+    border = (3 if template in ('highlight','pop') else 1.5)*scale
     background = '&H80000000'
     style = 3 if template=='studio' else 1
     margin = int(height*.17)
@@ -287,8 +296,8 @@ WrapStyle: 0
 ScaledBorderAndShadow: yes
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,DejaVu Sans,{font_size},{primary},&H00FFFFFF,&H00151515,{background},-1,0,0,0,100,100,0,0,{style},{border},0,2,45,45,{margin},1
-Style: Text,DejaVu Sans,{int(font_size*.85)},&H00FFFFFF,&H00FFFFFF,&H00222222,&H80000000,-1,0,0,0,100,100,0,0,1,2,0,8,45,45,80,1
+Style: Caption,DejaVu Sans,{font_size},{primary},&H00FFFFFF,&H00151515,{background},-1,0,0,0,100,100,0,0,{style},{border},0,2,{round(45*scale)},{round(45*scale)},{margin},1
+Style: Text,DejaVu Sans,{int(font_size*.85)},&H00FFFFFF,&H00FFFFFF,&H00222222,&H80000000,-1,0,0,0,100,100,0,0,1,{2*scale},0,8,{round(45*scale)},{round(45*scale)},{round(80*scale)},1
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 '''
@@ -314,8 +323,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     path.write_text(header+'\n'.join(events)+'\n',encoding='utf-8')
 
 
-def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False):
-    width,height = RATIOS[ratio]
+def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False, quality='720p'):
+    width,height = output_size(ratio,quality)
     source = info['video']
     sw,sh = int(source['width']),int(source['height'])
     rotation=next((s.get('rotation',0) for s in source.get('side_data_list',[]) if 'rotation' in s),0)
@@ -358,9 +367,9 @@ def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False)
     return f'{crop},scale={width}:{height},setsar=1'
 
 
-def scene_filter(ratio):
+def scene_filter(ratio, quality='720p'):
     """Keep the entire picture sharp, with a soft background filling the canvas."""
-    width,height = RATIOS[ratio]
+    width,height = output_size(ratio,quality)
     bw,bh = max(2,width//8//2*2),max(2,height//8//2*2)
     return (f'split=2[background][picture];'
             f'[background]scale={bw}:{bh}:force_original_aspect_ratio=increase,'
@@ -370,9 +379,9 @@ def scene_filter(ratio):
             f'[blurred][complete]overlay=(W-w)/2:(H-h)/2:shortest=1')
 
 
-def stacked_filter(info, ratio, screen_layout='side_by_side', split_at=.5):
+def stacked_filter(info, ratio, screen_layout='side_by_side', split_at=.5, quality='720p'):
     """Fit each source panel into its own half without dropping either picture."""
-    width,height = RATIOS[ratio]
+    width,height = output_size(ratio,quality)
     video = info['video']
     sw,sh = int(video['width']),int(video['height'])
     rotation = next((side.get('rotation',0) for side in video.get('side_data_list',[]) if 'rotation' in side),0)
@@ -384,10 +393,14 @@ def stacked_filter(info, ratio, screen_layout='side_by_side', split_at=.5):
     else:
         divider = max(2,min(sh-2,int(sh*split_at)//2*2))
         crops = [f'crop={sw}:{divider}:0:0',f'crop={sw}:{sh-divider}:0:{divider}']
-    panel = (f'scale={width}:{height//2}:force_original_aspect_ratio=decrease:'
-             f'force_divisible_by=2,pad={width}:{height//2}:(ow-iw)/2:(oh-ih)/2:color=0x17141c,setsar=1')
-    return (f'split=2[first][second];[first]{crops[0]},{panel}[top];'
-            f'[second]{crops[1]},{panel}[bottom];[top][bottom]vstack=inputs=2')
+    # Each YUV420 panel needs an even height. For 480×854, use 426 + 428
+    # rather than two odd-height panels that FFmpeg would silently shrink.
+    top_height = height//4*2
+    def panel(panel_height):
+        return (f'scale={width}:{panel_height}:force_original_aspect_ratio=decrease:'
+                f'force_divisible_by=2,pad={width}:{panel_height}:(ow-iw)/2:(oh-ih)/2:color=0x17141c,setsar=1')
+    return (f'split=2[first][second];[first]{crops[0]},{panel(top_height)}[top];'
+            f'[second]{crops[1]},{panel(height-top_height)}[bottom];[top][bottom]vstack=inputs=2')
 
 
 def render(source, output, clip, settings, tracking=None, music=None, clean=False):
@@ -395,18 +408,20 @@ def render(source, output, clip, settings, tracking=None, music=None, clean=Fals
     if music:
         music=Path(music).resolve()
     ratio=settings.get('ratio','portrait')
-    size=RATIOS[ratio]
+    quality=settings.get('quality','720p')
+    encoding=QUALITIES[quality]
+    size=output_size(ratio,quality)
     info=probe(source)
     settings=resolve_framing(source,clip,settings)
     duration=clip['end']-clip['start']
     args=['ffmpeg','-hide_banner','-loglevel','error','-y','-ss',str(clip['start']),'-t',str(duration),'-i',str(source)]
     if music: args += ['-stream_loop','-1','-i',str(music)]
     if settings.get('framing')=='stack':
-        filters=stacked_filter(info,ratio,settings.get('screen_layout','side_by_side'),settings.get('split_at',.5))
+        filters=stacked_filter(info,ratio,settings.get('screen_layout','side_by_side'),settings.get('split_at',.5),quality)
     elif settings.get('framing')=='scene':
-        filters=scene_filter(ratio)
+        filters=scene_filter(ratio,quality)
     else:
-        filters=crop_filter(info,ratio,tracking if settings.get('tracking',True) else None,output.with_suffix('.tracking.txt'),relative_paths=True)
+        filters=crop_filter(info,ratio,tracking if settings.get('tracking',True) else None,output.with_suffix('.tracking.txt'),relative_paths=True,quality=quality)
     subtitle=output.with_suffix('.ass')
     if not clean:
         write_subtitles(subtitle,clip['words'],clip['start'],duration,settings.get('template','highlight'),settings.get('text',''),settings.get('text_position','top'),settings.get('captions',True),size)
@@ -423,7 +438,7 @@ def render(source, output, clip, settings, tracking=None, music=None, clean=Fals
         args+=['-vf',filters,'-map','0:v:0','-map','0:a:0?']
         if info['audio']:
             args+=['-af',f'volume={voice}']
-    args+=['-t',str(duration),'-c:v','libx264','-preset','veryfast','-crf','23','-threads','2','-pix_fmt','yuv420p','-c:a','aac','-b:a','128k','-movflags','+faststart',str(output)]
+    args+=['-t',str(duration),'-c:v','libx264','-preset','veryfast','-crf',str(encoding['crf']),'-threads','2','-pix_fmt','yuv420p','-c:a','aac','-b:a',encoding['audio'],'-movflags','+faststart',str(output)]
     run(args,cwd=output.parent)
 
 

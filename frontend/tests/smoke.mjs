@@ -101,6 +101,8 @@ try {
   assert.equal(finished.clips[0].duration,.5);
   assert.equal(finished.clips[0].kind,'range');
   await project.getByRole('button',{name:'Make it yours'}).click();
+  assert.equal(await page.getByRole('combobox',{name:'Download quality',exact:true}).inputValue(),'720p');
+  await page.getByRole('combobox',{name:'Download quality',exact:true}).selectOption('480p');
   await page.getByRole('button',{name:'Frame',exact:true}).click();
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
   await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('side_by_side');
@@ -108,17 +110,51 @@ try {
   await page.getByRole('link',{name:/Your MP4 is ready/}).waitFor({timeout:30000});
   const stacked=await (await page.request.get(`/api/jobs/${job.id}`)).json();
   assert.equal(stacked.clips[0].export_framing,'stack');
+  assert.equal(stacked.clips[0].export_settings.quality,'480p');
+  await page.getByText('MP4 · 480 × 854 · Yours to share',{exact:true}).waitFor();
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('speaker');
   await page.getByRole('switch',{name:'Follow the speaker'}).waitFor();
   await page.getByRole('button',{name:'Export clip',exact:true}).click();
   await page.getByRole('link',{name:/Your MP4 is ready/}).waitFor({timeout:30000});
+  await page.keyboard.press('Escape');
+  const speaker=(await (await page.request.get(`/api/jobs/${job.id}`)).json()).clips[0];
+  await project.getByRole('button',{name:`Download ${speaker.title}`,exact:true}).click();
+  await page.getByRole('heading',{name:'Download your clip',exact:true}).waitFor();
+  assert.equal(await page.getByRole('combobox',{name:'Download quality',exact:true}).inputValue(),'480p');
+  await page.getByRole('link',{name:'Download 480p MP4',exact:true}).waitFor();
+  await page.getByRole('combobox',{name:'Download quality',exact:true}).selectOption('1080p');
+  assert.equal(await page.getByRole('link',{name:'Download 480p MP4',exact:true}).count(),0);
+  await page.getByText('MP4 · 1080 × 1920 · Yours to share',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Prepare download',exact:true}).click();
+  assert.equal(await page.getByRole('combobox',{name:'Download quality',exact:true}).isDisabled(),true);
+  await page.getByRole('link',{name:'Download 1080p MP4',exact:true}).waitFor({timeout:30000});
+  const highQuality=(await (await page.request.get(`/api/jobs/${job.id}`)).json()).clips[0];
+  assert.equal(highQuality.export_settings.quality,'1080p');
+  assert.equal(highQuality.export_framing,'speaker');
+  assert.notEqual(highQuality.export_url,speaker.export_url);
+  const pendingDownload=page.waitForEvent('download');
+  await page.getByRole('link',{name:'Download 1080p MP4',exact:true}).click();
+  const download=await pendingDownload;
+  const downloaded=join(folder,'download-1080p.mp4');
+  await download.saveAs(downloaded);
+  const downloadedInfo=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',downloaded],{encoding:'utf8'}));
+  const downloadedVideo=downloadedInfo.streams.find(stream=>stream.codec_type==='video');
+  assert.deepEqual([downloadedVideo.width,downloadedVideo.height],[1080,1920]);
+  assert(downloadedInfo.streams.some(stream=>stream.codec_type==='audio'));
+  for(const width of [320,390,768,1440]){
+    await page.setViewportSize({width,height:900});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Quality dialog overflow at ${width}px`);
+  }
+  await page.keyboard.press('Escape');
+  await project.getByRole('button',{name:'Make it yours'}).click();
+  assert.equal(await page.getByRole('combobox',{name:'Download quality',exact:true}).inputValue(),'1080p');
   await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'Open navigation'}).click();
   await page.locator('.nav-item').filter({hasText:'My projects'}).click();
   await page.getByRole('heading',{name:'Good stories live here.'}).waitFor();
   assert.deepEqual(errors,[]);
-  console.log('Browser smoke passed: validation, captions, automatic/speaker-cut/stack controls, source layout and divider, real stacked and speaker exports, exact-range preview, YouTube fields, mobile navigation, and four responsive widths.');
+  console.log('Browser smoke passed: validation, captions, framing, 480p editor export, saved quality, 1080p browser download with verified dimensions/audio, exact ranges, mobile navigation, and four responsive widths.');
 } finally {
   for(const id of created){for(let attempt=0;attempt<120;attempt++){const result=await page.request.delete(`/api/jobs/${id}`).catch(()=>null);if(!result||result.status()!==409)break;await new Promise(resolve=>setTimeout(resolve,250));}}
   await browser.close();

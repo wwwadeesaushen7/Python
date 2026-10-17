@@ -44,6 +44,7 @@ class Settings(BaseModel):
     screen_layout: str = 'side_by_side'
     split_at: float = Field(default=.5,ge=.1,le=.9,allow_inf_nan=False)
     ratio: str = 'portrait'
+    quality: str = '720p'
     language: str = 'auto'
     text: str = Field(default='',max_length=160)
     text_position: str = 'top'
@@ -62,6 +63,8 @@ class Settings(BaseModel):
             raise ValueError('Invalid caption style, framing, or text position.')
         if self.language not in {'auto','en','es','fr','de','pt','hi','ja','ko','it','si'}:
             raise ValueError('Unsupported transcription language.')
+        if self.quality not in media.QUALITIES:
+            raise ValueError('Choose 480p, 720p, or 1080p download quality.')
         return self.model_dump()
 
 
@@ -304,7 +307,7 @@ def render_export(job_id,clip_id,config,music,music_name=None):
             metadata['tracking']=points
             metadata['tracking_version']=media.TRACKING_VERSION
         (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata),encoding='utf-8')
-        output=folder/f'export-{clip_id}-{uuid.uuid4().hex[:8]}.mp4'
+        output=folder/f'export-{clip_id}-{config["quality"]}-{uuid.uuid4().hex[:8]}.mp4'
         media.render(source,output,metadata['clip'],frame_settings,points,music=music)
         store.update_clip(job_id,clip_id,export_status='completed',export_url=f'/media/{job_id}/{output.name}',export_settings=config,export_framing=frame_settings.get('framing','speaker'),export_error=None,music_file=music.name if music else None,music_name=music_name,music_url=f'/media/{job_id}/{music.name}' if music else None)
     except Exception as exc:

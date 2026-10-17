@@ -1,0 +1,15 @@
+.quality-control { margin-bottom: 16px; }
+.quality-control .editor-label { margin-bottom: 8px; }
+.quality-control select { color: #654b7b; }
+.quality-control p, .download-description {
+  color: #8e789e;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.quality-control p + p { margin-top: 4px; }
+.quality-control select:disabled { opacity: .6; cursor: wait; }
+.download-modal { width: 440px; }
+.download-description { margin: 0 0 20px; }
+.download-modal .editor-export { border: 0; padding-top: 0; }
+.download-modal .quality-control .editor-label { font-size: 11px; }
+.download-modal .quality-control select { font-size: 12px; }

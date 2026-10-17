@@ -37,8 +37,20 @@ Setup prepares the website automatically. You do not need to write code or use G
    Wait for processing. The first video may download the Whisper model.
    If that model is unavailable, the bundled recognizer handles English.
    When clips are ready, click "Make it yours" on a clip.
-   Choose captions, add your text or music, then click "Export clip".
+   Choose captions, add your text or music, and select "Download quality":
+   480p for smaller files, 720p HD for balanced quality, or 1080p Full HD.
+   Then click "Export clip".
    When "Your MP4 is ready" appears, click it to download the clip.
+
+CHOOSING DOWNLOAD QUALITY
+   Click the download arrow on a clip in My projects.
+   Choose 480p, 720p HD, or 1080p Full HD under "Download quality".
+   Click "Prepare download" and wait, then click "Download 1080p MP4"
+   (or the quality you chose). The existing quality can be downloaded directly.
+   Your saved framing, captions, text, and music are kept.
+   The same quality selector is above "Export clip" in Make it yours.
+   Higher quality takes longer and creates larger files. It cannot restore
+   details missing from a low-quality original video.
 
 5. CUT A SPECIFIC TIME RANGE
    Click "Clip a time range" on the main screen or in the left menu.
