@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 import shutil
 import uuid
@@ -122,7 +123,7 @@ app.add_middleware(PrivateSiteAuth)
 
 @app.get('/api/health')
 def health():
-    return {'status':'ok','ffmpeg':bool(shutil.which('ffmpeg')),'speech_model':'Whisper with bundled English fallback','min_duration':180}
+    return {'status':'ok','ffmpeg':bool(shutil.which('ffmpeg')),'speech_model':'Whisper with bundled English fallback','min_duration':180,'temporary_storage':os.environ.get('CUTLINE_TEMPORARY_STORAGE')=='1'}
 
 
 @app.get('/api/jobs')

@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 
 const folder=mkdtempSync(join(tmpdir(),'cutline-browser-'));
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
-const page=await browser.newPage({baseURL:process.env.APP_URL||'http://127.0.0.1:5173',viewport:{width:1440,height:1000}});
+const page=await browser.newPage({baseURL:process.env.APP_URL||'http://127.0.0.1:5173',viewport:{width:1440,height:1000},httpCredentials:process.env.CUTLINE_TEST_PASSWORD?{username:process.env.CUTLINE_TEST_USERNAME||'test-owner',password:process.env.CUTLINE_TEST_PASSWORD}:undefined});
 page.setDefaultTimeout(10000);
 const errors=[];
 const created=[];
@@ -15,6 +15,14 @@ page.on('pageerror',error=>errors.push(error.message));
 try {
   await page.goto(process.env.APP_URL||'http://127.0.0.1:5173');
   await page.getByRole('heading',{name:'Long video. Endless potential.'}).waitFor();
+  const health=await (await page.request.get('/api/health')).json();
+  if(health.temporary_storage){
+    await page.getByRole('note').filter({hasText:'Download your clips'}).waitFor();
+    await page.getByRole('button',{name:'Workspace details'}).click();
+    await page.getByText('Temporary on this server',{exact:true}).waitFor();
+    await page.keyboard.press('Escape');
+  }
+  assert.equal(await page.locator('.storage-notice').count(),health.temporary_storage?1:0);
   assert.equal(await page.getByRole('combobox',{name:'Framing',exact:true}).inputValue(),'auto');
   await page.getByRole('combobox',{name:'Framing',exact:true}).selectOption('stack');
   await page.getByRole('combobox',{name:'Source screen layout',exact:true}).selectOption('top_bottom');

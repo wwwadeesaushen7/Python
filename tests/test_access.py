@@ -22,6 +22,14 @@ def test_local_app_still_works_without_credentials(monkeypatch):
         assert client.get('/api/jobs').status_code == 200
 
 
+def test_health_reports_temporary_demo_storage_only_when_enabled(monkeypatch):
+    with TestClient(app) as client:
+        monkeypatch.delenv('CUTLINE_TEMPORARY_STORAGE', raising=False)
+        assert client.get('/api/health').json()['temporary_storage'] is False
+        monkeypatch.setenv('CUTLINE_TEMPORARY_STORAGE', '1')
+        assert client.get('/api/health').json()['temporary_storage'] is True
+
+
 @pytest.mark.parametrize('method,path', [
     ('GET', '/'), ('GET', '/api/jobs'), ('POST', '/api/jobs'),
     ('GET', '/media/' + 'a' * 32 + '/source.mp4'),
