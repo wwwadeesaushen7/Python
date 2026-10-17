@@ -149,7 +149,7 @@ def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False)
             for point in tracking:
                 x=round(max(0,min(sw-cw,point['x']*sw-cw/2))/2)*2
                 commands.append(f'{point["time"]:.3f} crop x {x};')
-            commands_path.write_text('\n'.join(commands)+'\n')
+            commands_path.write_text('\n'.join(commands)+'\n',encoding='utf-8')
             filename=commands_path.name if relative_paths else str(commands_path)
             escaped=filename.replace('\\','/').replace(':',r'\:').replace("'",r"\'")
             crop=f"sendcmd=f='{escaped}',{crop}"

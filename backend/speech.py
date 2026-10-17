@@ -3,10 +3,28 @@ import os
 import re
 import threading
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 _MODEL = None
 _MODEL_LOCK = threading.Lock()
 _WHISPER_UNAVAILABLE = False
+
+
+def decode_audio(source: Path, directory: Path):
+    """Give Whisper mono 16 kHz samples without relying on PyAV's changing API."""
+    import numpy as np
+    from .media import run
+    # FFmpeg already handles our supported containers. Close its output before
+    # reading/removing it so the same code also works with Windows file locking.
+    with TemporaryDirectory(prefix='audio-', dir=directory) as temporary:
+        raw = Path(temporary) / 'samples.f32'
+        run(['ffmpeg', '-v', 'error', '-y', '-i', str(source.resolve()),
+             '-map', '0:a:0', '-vn', '-ac', '1', '-ar', '16000',
+             '-c:a', 'pcm_f32le', '-f', 'f32le', str(raw)])
+        audio = np.fromfile(raw, dtype='<f4')
+    if not audio.size:
+        raise ValueError('No audio could be decoded from this video.')
+    return audio
 
 
 def offline_transcribe(source, cache):
@@ -45,14 +63,14 @@ def transcribe(source: Path, cache: Path, language='auto'):
     global _MODEL, _WHISPER_UNAVAILABLE
     import json
     if cache.exists():
-        return json.loads(cache.read_text())
+        return json.loads(cache.read_text(encoding='utf-8'))
     engine = os.environ.get('CUTLINE_SPEECH_ENGINE','auto')
     if engine=='offline' or (_WHISPER_UNAVAILABLE and engine=='auto'):
         if language not in {'auto','en'}:
             raise ValueError('This language needs the Whisper model. Enable Hugging Face model downloads, or choose English for the bundled offline model.')
         result=offline_transcribe(source,cache)
         if not result['words']: raise ValueError('No speech was detected. Try a video with clear spoken audio.')
-        cache.write_text(json.dumps(result))
+        cache.write_text(json.dumps(result), encoding='utf-8')
         return result
     from faster_whisper import WhisperModel
     with _MODEL_LOCK:
@@ -65,9 +83,10 @@ def transcribe(source: Path, cache: Path, language='auto'):
                 _WHISPER_UNAVAILABLE=True
                 result=offline_transcribe(source,cache)
                 if not result['words']: raise ValueError('No speech was detected. Try a video with clear spoken audio.')
-                cache.write_text(json.dumps(result))
+                cache.write_text(json.dumps(result), encoding='utf-8')
                 return result
-        segments, info = _MODEL.transcribe(str(source), language=None if language == 'auto' else language, word_timestamps=True, vad_filter=True, beam_size=3, condition_on_previous_text=False)
+        audio = decode_audio(source, cache.parent)
+        segments, info = _MODEL.transcribe(audio, language=None if language == 'auto' else language, word_timestamps=True, vad_filter=True, beam_size=3, condition_on_previous_text=False)
         words = []
         for segment in segments:
             for word in segment.words or []:
@@ -76,7 +95,7 @@ def transcribe(source: Path, cache: Path, language='auto'):
     if not words:
         raise ValueError('No speech was detected. Try a video with clear spoken audio.')
     result = {'language':info.language, 'engine':'whisper', 'words':words}
-    cache.write_text(json.dumps(result))
+    cache.write_text(json.dumps(result), encoding='utf-8')
     return result
 
 

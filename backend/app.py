@@ -163,7 +163,7 @@ def process(job_id):
             source=next((p for p in folder.glob('source.*') if p.suffix in {'.mp4','.mkv','.webm','.mov'}),None)
             if not source: raise ValueError('YouTube import did not produce a video. Use a public video longer than 3 minutes and shorter than 2 hours, or upload the file.')
             metadata=next(folder.glob('*.info.json'),None)
-            title=json.loads(metadata.read_text()).get('title','YouTube video') if metadata else 'YouTube video'
+            title=json.loads(metadata.read_text(encoding='utf-8')).get('title','YouTube video') if metadata else 'YouTube video'
             store.update(job_id,source=str(source),title=title)
         store.update(job_id,status='analyzing',progress=12,message='Checking your video and audio')
         info=media.validate_source(source)
@@ -178,7 +178,7 @@ def process(job_id):
             prefix=f'clip-{clip_id}'
             store.update(job_id,status='tracking',progress=50+int(index/len(candidates)*45),message=f'Following the speaker in clip {index+1} of {len(candidates)}')
             points=media.track_speaker(source,candidate['start'],candidate['end']) if config['tracking'] else []
-            (folder/f'{prefix}.json').write_text(json.dumps({'clip':candidate,'tracking':points}))
+            (folder/f'{prefix}.json').write_text(json.dumps({'clip':candidate,'tracking':points}),encoding='utf-8')
             store.update(job_id,status='rendering',message=f'Creating clip {index+1} of {len(candidates)}')
             clean=folder/f'{prefix}-clean.mp4'
             media.render(source,clean,candidate,config,points,clean=True)
@@ -232,12 +232,12 @@ def render_export(job_id,clip_id,config,music,music_name=None):
     try:
         job=store.get(job_id)
         folder=directory(job_id)
-        metadata=json.loads((folder/f'clip-{clip_id}.json').read_text())
+        metadata=json.loads((folder/f'clip-{clip_id}.json').read_text(encoding='utf-8'))
         points=metadata['tracking']
         if config['tracking'] and not points:
             points=media.track_speaker(Path(job['source']),metadata['clip']['start'],metadata['clip']['end'])
             metadata['tracking']=points
-            (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata))
+            (folder/f'clip-{clip_id}.json').write_text(json.dumps(metadata),encoding='utf-8')
         output=folder/f'export-{clip_id}-{uuid.uuid4().hex[:8]}.mp4'
         media.render(Path(job['source']),output,metadata['clip'],config,points,music=music)
         store.update_clip(job_id,clip_id,export_status='completed',export_url=f'/media/{job_id}/{output.name}',export_settings=config,export_error=None,music_file=music.name if music else None,music_name=music_name,music_url=f'/media/{job_id}/{music.name}' if music else None)

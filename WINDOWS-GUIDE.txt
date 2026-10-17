@@ -51,6 +51,18 @@ IF SOMETHING DOES NOT WORK
    YouTube may reject some downloads. Try uploading the video file instead.
    Speech recognition can make mistakes. Check your clips before sharing.
 
+UPDATING AN EXISTING COPY
+   Close the black terminal window that is running Cutline first.
+   Download the updated ZIP from GitHub and use "Extract All".
+   Open the extracted app folder that contains "1 - Setup.bat".
+   Copy all files and folders INSIDE it into your existing Cutline folder.
+   Choose "Replace the files in the destination" when Windows asks.
+   Copying these files preserves your .data, .tools, and .venv folders.
+   Use "2 - Open Cutline.bat" again after copying finishes.
+   For the audio-decoding and UTF-8 processing fix, Setup is not needed again.
+   Previously failed projects stay failed; upload the video or paste the
+   YouTube link again to create a new project with the corrected code.
+
 WHERE YOUR VIDEOS GO
    Projects and clips are stored in the hidden .data folder alongside this
    guide. Use Cutline's Delete Project button to remove a project and files.
