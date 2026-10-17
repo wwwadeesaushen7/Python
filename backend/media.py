@@ -8,7 +8,7 @@ from statistics import median
 
 RATIOS = {'portrait': (720,1280), 'square':(720,720), 'landscape':(1280,720)}
 TEMPLATES = {'highlight','studio','pop','minimal'}
-TRACKING_VERSION = 2
+TRACKING_VERSION = 3
 
 
 def run(args, timeout=1800, cwd=None):
@@ -40,29 +40,69 @@ def validate_source(path, automatic=True):
 
 
 def speaker_path(observations, confirm_samples=2):
-    """Confirm a face change, then put a hard cut at its first observed sample."""
+    """Choose speakers independently in each source shot; never pan over a cut."""
+    if not any(observation['faces'] for observation in observations):
+        return []
+    shots = []
+    for observation in observations:
+        if not shots or observation.get('scene_cut'):
+            shots.append([])
+        shots[-1].append(observation)
+    result = []
+    for shot in shots:
+        points = _speaker_shot_path(shot, confirm_samples)
+        if result and points:
+            points[0]['cut'] = True
+        result.extend(points)
+    return result
+
+
+def _speaker_shot_path(observations, confirm_samples):
     points,pending = [],[]
     center,subject = None,None
-    for observation in observations:
+    last_present = observations[0]['time']
+    for sample_index, observation in enumerate(observations):
         faces = observation['faces']
         if not faces:
             pending = []
-            if center is not None:
-                points.append({'time':observation['time'],'x':center,'cut':False})
+            points.append({'time':observation['time'],'x':center if center is not None else .5,'cut':False})
             continue
-        winner = max(faces,key=lambda face:face['score'])
+        winner = max(faces,key=lambda face:(face['score'],face.get('size',0)*face.get('confidence',1)))
         if center is None:
+            if winner['score'] < .03:
+                # The first image has no motion history. Use the next half
+                # second of the same shot, rather than assuming the biggest
+                # face is talking. Rendering still starts at the shot boundary.
+                def initial_score(face):
+                    scores = []
+                    for following in observations[sample_index:]:
+                        if following['time'] > observation['time']+.5:
+                            break
+                        for candidate in following['faces']:
+                            same = (candidate.get('id')==face['id'] if face.get('id') is not None
+                                    else abs(candidate['x']-face['x']) < .12)
+                            if same and following.get('speaking',True):
+                                scores.append(candidate['score'])
+                    return (sum(scores)/max(1,len(scores)),face.get('size',0)*face.get('confidence',1))
+                winner = max(faces,key=initial_score)
             center,subject = winner['x'],winner.get('id')
-            points.append({'time':observation['time'],'x':center,'cut':False})
+            short_lead = observation['time']-observations[0]['time'] <= .75
+            if short_lead:
+                for point in points:
+                    point['x'] = center
+            points.append({'time':observation['time'],'x':center,'cut':bool(points) and not short_lead})
+            last_present = observation['time']
             continue
         incumbent = (next((face for face in faces if face.get('id')==subject),None)
                      if subject is not None else min(faces,key=lambda face:abs(face['x']-center)))
         present = incumbent is not None and (subject is not None or abs(incumbent['x']-center)<.18)
         if present:
             center = incumbent['x']
+            last_present = observation['time']
         points.append({'time':observation['time'],'x':center,'cut':False})
         different = winner.get('id')!=subject if subject is not None and winner.get('id') is not None else abs(winner['x']-center)>=.18
-        changing = not present or (observation.get('speaking',True) and different and winner['score']>incumbent['score']+.03)
+        missing = not present and (winner['score']>.06 or observation['time']-last_present>.75)
+        changing = missing or (present and observation.get('speaking',True) and different and winner['score']>incumbent['score']*1.15+.03)
         if not changing:
             pending = []
             continue
@@ -81,13 +121,13 @@ def speaker_path(observations, confirm_samples=2):
 
 
 def track_speaker(source, start, end, words=None):
-    """Visual mouth-motion heuristic; word timestamps can gate silent intervals."""
+    """Aligned mouth motion, persistent face tracks and source-shot resets."""
     import cv2
-    import numpy as np
+    from .faces import FaceTracker, scene_changed, locate_scene_cut
     capture = cv2.VideoCapture(str(source))
-    detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    observations, previous = [], []
-    next_identity = 0
+    tracker = FaceTracker()
+    observations, previous = [], None
+    previous_time = start
     word_index = 0
     try:
         for index in range(max(1,math.ceil((end-start)*4))):
@@ -96,36 +136,22 @@ def track_speaker(source, start, end, words=None):
             ok,frame = capture.read()
             if not ok:
                 break
-            height,width = frame.shape[:2]
-            small = cv2.resize(frame,(min(480,width),max(1,int(height*min(480,width)/width))))
-            gray = cv2.cvtColor(small,cv2.COLOR_BGR2GRAY)
-            faces = detector.detectMultiScale(gray,scaleFactor=1.15,minNeighbors=5,minSize=(28,28))
-            choices,current,matched = [],[],set()
-            for x,y,w,h in faces:
-                cx = (x+w/2)/small.shape[1]
-                mouth = cv2.resize(gray[y+int(h*.58):y+int(h*.9),x+int(w*.18):x+int(w*.82)],(32,16))
-                forehead = cv2.resize(gray[y+int(h*.15):y+int(h*.4),x+int(w*.2):x+int(w*.8)],(32,16))
-                nearest_index = min((i for i in range(len(previous)) if i not in matched),key=lambda i:abs(previous[i][0]-cx),default=None)
-                nearest = previous[nearest_index] if nearest_index is not None else None
-                movement = 0
-                if nearest and abs(nearest[0]-cx)<.16:
-                    matched.add(nearest_index)
-                    identity = nearest[3]
-                    mouth_change = float(np.mean(cv2.absdiff(mouth,nearest[1])))
-                    head_change = float(np.mean(cv2.absdiff(forehead,nearest[2])))
-                    movement = max(0,mouth_change-.6*head_change)/255
-                else:
-                    identity = next_identity
-                    next_identity += 1
-                choices.append({'id':identity,'x':round(cx,4),'score':movement*3+(w/small.shape[1])*.2})
-                current.append((cx,mouth,forehead,identity))
+            small = cv2.resize(frame,(64,36))
+            cut = scene_changed(previous,small)
+            sample_time = timestamp
+            if cut:
+                sample_time, boundary = locate_scene_cut(capture,previous_time,timestamp,previous,small)
+                if boundary is not None:
+                    frame = boundary
+                tracker.reset()
+            choices = tracker.observe(frame,sample_time)
             speaking = True
             if words is not None:
                 while word_index<len(words) and words[word_index]['end']<timestamp-.15:
                     word_index += 1
                 speaking = word_index<len(words) and words[word_index]['start']<=timestamp+.1
-            observations.append({'time':round(timestamp-start,3),'faces':choices,'speaking':speaking})
-            previous = current
+            observations.append({'time':round(sample_time-start,6),'faces':choices,'speaking':speaking,'scene_cut':cut})
+            previous,previous_time = small,timestamp
     finally:
         capture.release()
     return speaker_path(observations)
@@ -197,8 +223,9 @@ def detect_split_screen(source, start, end):
 def has_multiple_faces(source, start, end):
     """Identify a shared wide camera with two separated faces across samples."""
     import cv2
+    from .faces import FaceTracker
     capture = cv2.VideoCapture(str(source))
-    detector = cv2.CascadeClassifier(cv2.data.haarcascades+'haarcascade_frontalface_default.xml')
+    detector = FaceTracker()
     matches = 0
     try:
         for index in range(3):
@@ -209,9 +236,8 @@ def has_multiple_faces(source, start, end):
             height,width = frame.shape[:2]
             if width<height*1.2:
                 return False
-            small = cv2.resize(frame,(480,max(1,round(height*480/width))))
-            faces = detector.detectMultiScale(cv2.cvtColor(small,cv2.COLOR_BGR2GRAY),scaleFactor=1.15,minNeighbors=5,minSize=(28,28))
-            centers = [(x+w/2)/480 for x,y,w,h in faces]
+            faces = detector.observe(frame,start+(end-start)*(index+.5)/3)
+            centers = [face['x'] for face in faces]
             if len(centers)>1 and max(centers)-min(centers)>.12:
                 matches += 1
         return matches>=2
@@ -317,7 +343,11 @@ def crop_filter(info, ratio, tracking, commands_path=None, relative_paths=False)
                     expression=f'{x:.4f}+({next_x-x:.4f})*clip((t-{point["time"]:.4f})/{interval:.4f},0,1)'
                 else:
                     expression=f'{x:.4f}'
-                commands.append(f'{point["time"]:.3f} crop x \'{expression}\';')
+                # Rounding a 17/30-second boundary up to .567 delays the crop
+                # until the next frame. Bias below the boundary by at most two
+                # microseconds so the first frame of the new shot is centered.
+                command_time=max(0,(math.floor(point['time']*1_000_000)-1)/1_000_000)
+                commands.append(f'{command_time:.6f} crop x \'{expression}\';')
             commands_path.write_text('\n'.join(commands)+'\n',encoding='utf-8')
             filename=commands_path.name if relative_paths else str(commands_path)
             escaped=filename.replace('\\','/').replace(':',r'\:').replace("'",r"\'")

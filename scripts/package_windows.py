@@ -21,6 +21,7 @@ def main():
     paths.extend((ROOT/'scripts').glob('*.sh'))
     paths.append(ROOT/'scripts'/'windows-downloads.json')
     paths.extend((ROOT/'docs').glob('*.md'))
+    paths.extend(path for path in (ROOT/'backend/models').iterdir() if path.is_file())
     for directory in ['frontend/src','frontend/public','frontend/dist','frontend/tests']:
         paths.extend(p for p in (ROOT/directory).rglob('*') if p.is_file())
     output=args.output.resolve()
