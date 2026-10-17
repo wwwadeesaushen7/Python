@@ -16,6 +16,7 @@ from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, ValidationError
 
 from . import media, speech, store
+from .access import PrivateSiteAuth
 
 LOG = logging.getLogger(__name__)
 POOL = ThreadPoolExecutor(max_workers=1, thread_name_prefix='cutline')
@@ -116,6 +117,7 @@ async def lifespan(app):
     yield
 
 app=FastAPI(title='Cutline Studio',lifespan=lifespan)
+app.add_middleware(PrivateSiteAuth)
 
 
 @app.get('/api/health')

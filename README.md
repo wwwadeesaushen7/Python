@@ -23,6 +23,10 @@ For a single production-style process, build first with `cd frontend && npm run 
 
 For automated checks: `./scripts/check.sh`. Runtime/development Python packages are pinned in `requirements.lock.txt`; the frontend uses `npm ci` with `package-lock.json`.
 
+## Publish a private test site
+
+Follow the [Windows browser publishing guide](docs/PUBLISHING.md) to host the app using the included Dockerfile, a persistent disk, and a site password. The container requires `CUTLINE_SITE_USERNAME` and `CUTLINE_SITE_PASSWORD` before it starts. This protects one shared workspace; it does not add separate user accounts. Publishing a Codex environment does not publish the website.
+
 ## What works
 
 - Upload MP4, MOV, WebM, MKV, M4V, or AVI, up to 2 GB and two hours. **Automatic highlights** require video and audio and a source strictly longer than 180 seconds. **Clip a time range** also accepts short or silent videos. Both the browser (where it can read metadata) and server validate the selected times.
