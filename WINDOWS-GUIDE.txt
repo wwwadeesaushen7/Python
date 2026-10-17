@@ -15,8 +15,9 @@ Setup prepares the website automatically. You do not need to write code or use G
 2. RUN SETUP ONCE
    Double-click "1 - Setup.bat".
    A terminal window opens and shows its progress.
-   It installs Python 3.12, Node.js, FFmpeg and Microsoft Visual C++ if missing,
-   then downloads the app's Python packages using verified HTTPS.
+   It installs missing tools directly, verifies their checksums/signatures,
+   and keeps portable Node.js and FFmpeg inside the .tools folder.
+   It then downloads the app's Python packages using verified HTTPS.
    If you downloaded the source from GitHub, it also builds the website.
    If an installer asks for Windows permission, review it and choose Yes
    to continue. Setup can take several minutes depending on your internet.
@@ -40,8 +41,9 @@ Setup prepares the website automatically. You do not need to write code or use G
    When "Your MP4 is ready" appears, click it to download the clip.
 
 IF SOMETHING DOES NOT WORK
-   If setup reports missing App Installer, install/update "App Installer"
-   by Microsoft in the Microsoft Store, then run Setup again.
+   Setup version 2 does not need App Installer, Microsoft Store, or WinGet.
+   The setup window should say "DIRECT SETUP (VERSION 2)". If it does not,
+   download the updated ZIP from GitHub and extract it into a new folder.
    If Windows or your organisation blocks running scripts, stop and ask
    your administrator. Do not disable Windows security protections.
    For an error, send a screenshot of the error window in the chat.

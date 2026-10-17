@@ -19,6 +19,7 @@ def main():
     for directory in ['backend','scripts','tests']:
         paths.extend((ROOT/directory).glob('*.py'))
     paths.extend((ROOT/'scripts').glob('*.sh'))
+    paths.append(ROOT/'scripts'/'windows-downloads.json')
     paths.extend((ROOT/'docs').glob('*.md'))
     for directory in ['frontend/src','frontend/public','frontend/dist','frontend/tests']:
         paths.extend(p for p in (ROOT/directory).rglob('*') if p.is_file())
@@ -31,7 +32,7 @@ def main():
     output.with_suffix('.zip.sha256').write_text(f'{checksum}  {output.name}\n')
     with zipfile.ZipFile(output) as archive:
         assert archive.testzip() is None
-        assert all(not set(Path(p).parts)&{'.data','.venv','.git','node_modules','.cache','__pycache__'} for p in archive.namelist())
+        assert all(not set(Path(p).parts)&{'.data','.venv','.git','node_modules','.cache','.tools','__pycache__'} for p in archive.namelist())
     print(f'Created {output} ({output.stat().st_size:,} bytes)')
     print(f'SHA256 {checksum}')
 

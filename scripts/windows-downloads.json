@@ -1,0 +1,25 @@
+{
+  "python": {
+    "version": "3.13.15",
+    "url": "https://www.python.org/ftp/python/3.13.15/python-3.13.15-amd64.exe",
+    "sha256": "edec09c4853aeae9ac36efb8c9f95b6b8e2fee65eee56d9767a8b7c69c574403",
+    "metadata_source": "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/p/Python/Python/3/13/3.13.15/Python.Python.3.13.installer.yaml"
+  },
+  "node": {
+    "version": "24.22.0",
+    "url": "https://nodejs.org/dist/v24.22.0/node-v24.22.0-win-x64.zip",
+    "sha256": "f9683a19877e12a9b167305c8db71040d812876359de21f0d2e97c3f321f80c3",
+    "metadata_source": "https://nodejs.org/dist/v24.22.0/SHASUMS256.txt"
+  },
+  "ffmpeg": {
+    "version": "9.0.2",
+    "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-full_build.zip",
+    "sha256": "759d0a9831c436a0eb331ad36f236c06cb04aaa0005da46571f0e9d3d9206f6b",
+    "metadata_source": "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/g/Gyan/FFmpeg/9.0.2/Gyan.FFmpeg.installer.yaml"
+  },
+  "vc_runtime": {
+    "url": "https://aka.ms/vc14/vc_redist.x64.exe",
+    "publisher": "Microsoft Corporation",
+    "metadata_source": "https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
+  }
+}

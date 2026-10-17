@@ -1,112 +1,64 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Cutline Studio - first setup
+title Cutline Studio - direct setup
 
 echo.
-echo CUTLINE STUDIO - FIRST SETUP
-echo This installs Python 3.12, Node.js, FFmpeg and Microsoft Visual C++ if needed.
-echo It then downloads the app's Python packages. Internet is required.
-echo Windows may ask permission for the standard installers.
+echo CUTLINE STUDIO - DIRECT SETUP (VERSION 2)
+echo This version works without WinGet or Microsoft App Installer.
+echo It downloads and verifies the tools needed by Cutline.
+echo Windows may ask permission for Python or Microsoft installers.
 echo Leave this window open until you see SETUP COMPLETE.
 echo.
-call :refresh_path
 
+if exist ".venv\Scripts\python.exe" goto existing_venv
+py -3.13 -c "import sys; assert sys.maxsize > 2**32" >nul 2>&1
+if not errorlevel 1 goto python313_launcher
 py -3.12 -c "import sys; assert sys.maxsize > 2**32" >nul 2>&1
-if not errorlevel 1 goto python_ready
-if exist "%LocalAppData%\Programs\Python\Python312\python.exe" goto python_ready
-call :need_winget
-if errorlevel 1 goto failed
-winget install --exact --id Python.Python.3.12 --scope user --source winget --accept-source-agreements --accept-package-agreements
-if errorlevel 1 goto failed
-call :refresh_path
+if not errorlevel 1 goto python312_launcher
+if exist "%LocalAppData%\Programs\Python\Python313\python.exe" goto python313_direct
+if exist "%LocalAppData%\Programs\Python\Python312\python.exe" goto python312_direct
 
-:python_ready
-node -e "if(Number(process.versions.node.split('.')[0]) < 20) process.exit(1)" >nul 2>&1
-if not errorlevel 1 goto node_ready
-call :need_winget
+echo Downloading the signed Python installer from python.org ...
+set "CUTLINE_PYTHON_URL=https://www.python.org/ftp/python/3.13.15/python-3.13.15-amd64.exe"
+set "CUTLINE_PYTHON_SHA256=edec09c4853aeae9ac36efb8c9f95b6b8e2fee65eee56d9767a8b7c69c574403"
+set "CUTLINE_PYTHON_INSTALLER=%TEMP%\cutline-python-3.13.15-amd64.exe"
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $f=$env:CUTLINE_PYTHON_INSTALLER; Invoke-WebRequest -UseBasicParsing -Uri $env:CUTLINE_PYTHON_URL -OutFile $f; if((Get-FileHash -LiteralPath $f -Algorithm SHA256).Hash -ine $env:CUTLINE_PYTHON_SHA256){throw 'Python checksum verification failed. Setup stopped.'}; $s=Get-AuthenticodeSignature -LiteralPath $f; if($s.Status -ne 'Valid' -or $s.SignerCertificate.Subject -notmatch 'Python Software Foundation'){throw 'Python signature verification failed. Setup stopped.'}; $p=Start-Process -FilePath $f -ArgumentList '/passive','InstallAllUsers=0','Include_launcher=0','Include_test=0','PrependPath=0' -Wait -PassThru; if($p.ExitCode -notin @(0,3010)){throw ('Python installer returned '+$p.ExitCode)}"
 if errorlevel 1 goto failed
-winget install --exact --id OpenJS.NodeJS.LTS --source winget --accept-source-agreements --accept-package-agreements
-if errorlevel 1 goto failed
-call :refresh_path
+if exist "%LocalAppData%\Programs\Python\Python313\python.exe" goto python313_direct
+echo Python was not found after installation. Send this screen in the chat.
+goto failed
 
-:node_ready
-where ffmpeg >nul 2>&1
-if errorlevel 1 goto install_ffmpeg
-where ffprobe >nul 2>&1
-if not errorlevel 1 goto ffmpeg_ready
-:install_ffmpeg
-call :need_winget
-if errorlevel 1 goto failed
-winget install --exact --id Gyan.FFmpeg --source winget --accept-source-agreements --accept-package-agreements
-if errorlevel 1 goto failed
-call :refresh_path
+:existing_venv
+".venv\Scripts\python.exe" scripts\setup_windows.py
+goto finish
 
-:ffmpeg_ready
-if exist "%SystemRoot%\System32\vcruntime140_1.dll" goto runtime_ready
-call :need_winget
-if errorlevel 1 goto failed
-winget install --exact --id Microsoft.VCRedist.2015+.x64 --source winget --accept-source-agreements --accept-package-agreements
-if errorlevel 1 goto failed
-call :refresh_path
+:python313_launcher
+py -3.13 scripts\setup_windows.py
+goto finish
 
-:runtime_ready
-if exist ".venv\Scripts\python.exe" goto install_packages
-py -3.12 -m venv .venv
-if not errorlevel 1 goto install_packages
-if not exist "%LocalAppData%\Programs\Python\Python312\python.exe" goto failed
-"%LocalAppData%\Programs\Python\Python312\python.exe" -m venv .venv
-if errorlevel 1 goto failed
+:python312_launcher
+py -3.12 scripts\setup_windows.py
+goto finish
 
-:install_packages
-".venv\Scripts\python.exe" -m pip install --only-binary=:all: -r requirements.txt
-if errorlevel 1 goto failed
-".venv\Scripts\python.exe" -m pip check
-if errorlevel 1 goto failed
-".venv\Scripts\python.exe" -c "import fastapi, uvicorn, cv2, pocketsphinx; from faster_whisper import WhisperModel; from backend.media import run; run(['ffmpeg','-version']); run(['ffprobe','-version']); print('Required tools are available.')"
-if errorlevel 1 goto failed
-if exist "frontend\dist\index.html" goto website_ready
-echo.
-echo Preparing the website. This can take a few minutes on first setup.
-pushd frontend
-call npm ci
-if errorlevel 1 goto frontend_failed
-call npm run build
-if errorlevel 1 goto frontend_failed
-popd
+:python313_direct
+"%LocalAppData%\Programs\Python\Python313\python.exe" scripts\setup_windows.py
+goto finish
 
-:website_ready
+:python312_direct
+"%LocalAppData%\Programs\Python\Python312\python.exe" scripts\setup_windows.py
+goto finish
 
-echo.
-echo SETUP COMPLETE!
-echo Close this window, then double-click "2 - Open Cutline.bat".
-echo Your browser will open the app automatically.
+:finish
+if errorlevel 1 goto failed
 echo.
 pause
 exit /b 0
 
-:refresh_path
-for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')"`) do set "PATH=%%P"
-exit /b 0
-
-:need_winget
-where winget >nul 2>&1
-if not errorlevel 1 exit /b 0
-echo.
-echo Windows App Installer is needed to install the tools automatically.
-echo Open Microsoft Store, search for "App Installer" by Microsoft, and install or update it.
-echo Then close this window and double-click "1 - Setup.bat" again.
-exit /b 1
-
-:frontend_failed
-popd
-echo The website build stopped. Check the error above.
-goto failed
-
 :failed
 echo.
-echo Setup stopped. Do not close this window yet.
-echo Take a screenshot of the error above and send it in the chat for help.
+echo Setup stopped. Send a screenshot of the error above in the chat.
+echo No security checks were disabled.
 echo.
 pause
 exit /b 1

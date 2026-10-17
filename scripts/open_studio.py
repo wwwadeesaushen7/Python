@@ -12,6 +12,11 @@ from urllib.error import URLError
 from urllib.request import urlopen
 import webbrowser
 
+if __package__:
+    from .windows_tools import activate_tools
+else:
+    from windows_tools import activate_tools
+
 ROOT=Path(__file__).resolve().parents[1]
 
 
@@ -42,6 +47,7 @@ def main():
     args=parser.parse_args()
     if not 1024<=args.port<=65515:
         parser.error('Choose a port from 1024 to 65515.')
+    activate_tools(ROOT)
     url=f'http://127.0.0.1:{args.port}'
     if is_studio(url):
         if not args.no_browser:
