@@ -1,78 +1,56 @@
-# Skychrome v2.3.0 — ready-to-host website
+# Skychrome v2.3.1 — ready-to-host website
 
-This folder contains the complete browser game. No Python or Node.js installation is needed to host or play the compiled website.
+This folder contains the complete browser game. No Python or Node.js installation is needed to host or play this compiled website.
 
 ## Update your existing Netlify website
 
-1. Download the `skychrome-website` branch ZIP from GitHub and extract it.
-2. If you already enabled accounts, keep your configured `account-config.json` in the new folder. Open your existing Netlify site, go to **Deploys**, and upload the extracted folder containing `index.html`, `assets/`, `audio/`, and `account-config.json`.
-3. Refresh your game website. The flight deck should show **v2.3.0**. Choose Campaign, Ranked, or Quick flight and press **Launch mission**.
+1. Download the skychrome-website branch ZIP from GitHub and extract it.
+2. If you enabled accounts, keep your configured `account-config.json` in the new folder.
+3. Open your existing Netlify site → Deploys and upload the extracted folder containing `index.html`, `assets/`, `audio/` and `account-config.json`. Keep all these files/folders together.
+4. Refresh your game website and check **v2.3.1** on the flight deck. Choose a mode and press Launch mission.
 
-Launch requests real browser fullscreen. If the browser does not allow it, the game starts in its window. Escape exits fullscreen and pauses; P pauses/resumes.
+Keeping the same website address retains browser saves and custom songs. Back up player progress from Player account before clearing website data or changing sites.
 
-## Mobile controls in v2.3.0
+## Less crowded combat and stronger weapons
 
-**This update changes mobile controls and layout. PC keyboard/mouse controls, layout, physics, graphics, enemies and sound stay the same.**
+- At most **3 active enemies in Campaign/Quick flight**, or **4 in Ranked**, instead of the old ten-aircraft cap.
+- Enemies arrive **one at a time**: campaign arrivals are 6–8 seconds apart; Azure patrol uses 8 seconds and Crimson uses 6.5 seconds. Ranked arrivals are 5.1–6.5 seconds apart. Full airspace does not queue a burst of reinforcements.
+- Reinforcements pause after completing a stage's combat goal, then resume in the next stage. Existing enemy jets finish their attack runs. Complete every stage's combat AND gate goals to pass; waiting never wins.
+- Cannons deal **3 damage per round**, three times the previous damage. Both rounds hitting delivers six damage per volley. Enemies retain their 16–34 hull, varied flight roles and evasive turns.
+- **One missile impact destroys any enemy jet**, including a full-health opponent at the highest rank. Missiles keep their normal homing, travel time and seven-second recharge.
+- The mouse arrow is hidden over active airspace while the aiming reticle remains visible. Pausing, dialogs and results restore the cursor; menu buttons remain usable.
 
-- **Two independent sticks:** left steers; right moves the gun sight. Holding the aiming stick also fires by default, so two thumbs can fly, aim and shoot together. Releasing the aim stick holds the sight in place.
-- **LOCK / NEXT:** track the predicted lead of a visible hostile and cycle targets. Dragging the aim stick overrides tracking. CENTER resets the sight. Tracking does not steer or fire automatically on its own.
-- **Touch settings:** tap ☷ at the top of the flight or open Mobile controls in Settings. Adjust aiming sensitivity, stick dead zone, stick size, left-handed layout, target tracking, and aim-and-fire. Preferences are saved separately from PC controls.
-- Separate FIRE, BOOST, MISSILE and ROLL buttons remain available. Action targets are at least 44px; the missile label shows recharge time.
-- Mobile flights fill the available viewport even when native fullscreen is unsupported. Portrait, landscape, smaller phones and tablets have a responsive control layout with safe-area spacing. Device rotation pauses safely; canceled touches, pause and focus loss clear held inputs.
+Long mission routes, stage counts, level/rank objectives, player progress, rewards, audio and mobile control preferences are retained. See [docs/MISSIONS.md](docs/MISSIONS.md).
 
-See [docs/MOBILE.md](docs/MOBILE.md) for the mobile flight guide. Existing player profiles, progress, custom music and account configuration remain compatible.
+## Controls
 
-## Cannon sound update in v2.2.1
+**PC:** WASD/arrows steer; mouse aims; left mouse/Space fires cannons; Shift boosts; Q/E rolls; F launches a missile; P/Escape pauses. Release Q/E to recover to level flight. Keyboard bindings can be customized in All controls.
 
-Hold **left mouse** or **Space** for sharp twin-cannon bursts with a muzzle crack, low pressure thump, mechanical ring and short tail. These replace the quiet generic shot effect. Enemy cannons have quieter sounds placed in their direction. Engine and music briefly lower while you fire so the cannon stays audible, then return smoothly after release. Sound effects volume and master mute control gunfire. Three short samples are generated once and reused within the existing 24-voice limit.
+**Mobile:** left stick steers, right stick aims and fires independently. Release the right stick to hold your sight. LOCK tracks a visible enemy's lead, NEXT switches targets, dragging the aim stick takes over, and CENTER resets the sight. Separate FIRE, BOOST, MISSILE and ROLL buttons are available. Tap ☷ to change sensitivity, dead zone, stick size, handedness, tracking and aim-and-fire. Mobile layouts support portrait, landscape and smaller screens, with a viewport-filling fallback when native fullscreen is unavailable. See [docs/MOBILE.md](docs/MOBILE.md).
 
-## Tougher opponents, roll recovery and audio in v2.2.0
+Water/terrain contact destroys your jet; an aircraft collision destroys both jets. Green gates restore hull and boost. Fullscreen launch has a windowed fallback; opening settings or losing focus pauses the flight.
 
-- **Armored enemies:** 16–34 hull points. A single missile or cannon volley cannot destroy them. Aim steadily at the moving-target lead diamond; the target hull bar shows remaining strength.
-- **Four AI roles:** interceptors, flankers, divers and sweepers change altitude and direction, make attack passes and perform evasive turns when hit. Aircraft bank and pitch with their movement.
-- **Q / E rolls recover automatically:** release the key and the jet smoothly returns to level flight. The camera remains steady for aiming.
-- **Layered aircraft and combat sound:** engine roar, turbine whine, wind, afterburner power, cannons, missiles, hits, explosions and nearby jet passes. Effects use stereo positioning and distance attenuation.
-- **Separate original music:** Blue Horizon plays in the lobby; Afterburn plays during matches. Music crossfades when entering/leaving a flight and lowers during pause. Audio begins after your first click or tap.
-- **Your own music:** open Settings → Your soundtrack. Choose separate Lobby and Match files (up to 50 MB each), preview them, or use the defaults. Supported formats depend on your browser; MP3 is a good choice. Files stay in this browser and are never uploaded. The status shows whether a file is saved or only available for this session.
-- Master volume, sound effects volume and music volume are independent. Custom music streams through the browser; audio effects have a 24-voice limit. Enemy/projectile/rendering limits remain capped.
+## Modes, progression and gifts
 
-See [docs/AUDIO.md](docs/AUDIO.md) for music settings and local-file storage. Keep the `audio/` folder when uploading the website. Existing progress, account setup and rewards remain compatible.
+- **Campaign:** 100 sequential levels with 4–8 stages, longer routes and harder objectives/AI as levels rise. Win to unlock the next level; earn stars and eleven milestone skin gifts.
+- **Ranked:** a solo AI ladder through Cadet, Bronze, Silver, Gold, Platinum, Diamond, Ace and Legend. Complete 6–9 extended combat/route stages. Wins earn 120–150 RP; defeat, leaving or interruption costs up to 45 RP. Seven rank skins remain earned after demotion. This is not online PvP.
+- **Quick flight:** Azure Horizon patrol, Crimson Skies combat, and peaceful Open Horizon free flight.
+- **21 skins:** three starters plus campaign/rank gifts. Player profiles retain completed levels, best results, RP, XP, statistics, cosmetics and recent flights; export/import backups from Player account.
 
-## Long missions and flight controls
+## Sound and personal music
 
-- **Campaign:** every level now has 4–8 stages. Complete both combat and gate goals in each stage, then finish all stages to win. Routes and objective counts grow with level, targeting roughly 6–17 minutes at normal cruise speed; boost and pilot skill change the actual time.
-- **Ranked:** 6–9 extended stages with progressively tougher enemy formations and precision gates, targeting roughly 9–20 minutes at normal cruise speed.
-- Higher levels/ranks increase targets, route length, enemy hull, squad size, attack frequency, damage, aim prediction, and maneuvers; gate clearance gets tighter. Enemy/projectile/effect/rendering limits remain bounded.
-- Waiting never wins a mission. The timer is a failure deadline. Extra kills in an early stage cannot complete later stages; missed gates are replaced along the route.
-- **Q / E rotate the jet left / right through 360°.** Release to smoothly return to level flight. Steering follows the jet's roll; the aiming camera stays level. Visible aircraft rotation, cannon muzzles, and ground/aircraft collisions use the roll orientation. Touchscreen roll buttons are included.
-- **F launches missiles.** Old saved controls migrate automatically; if F already has a custom binding, Controls shows the selected replacement key. Fullscreen HUD shows stage goals, operation totals, and roll angle.
-
-See [docs/MISSIONS.md](docs/MISSIONS.md) for objective counts, timing, controls, and completion rules. Existing player progress and earned rewards remain compatible.
-
-## Progression and player accounts
-
-- **100 campaign levels** across ten chapters, sequential unlocks, replay, three-star results, and a complete level map.
-- **Ranked sorties against AI pilots**: Cadet, Bronze, Silver, Gold, Platinum, Diamond, Ace, and Legend. Wins earn 120–150 RP; a crash, loss, quit, or interrupted ranked flight costs up to 45 RP. This is a solo ladder, not online PvP.
-- **21 jet skins**: three starters, eleven level-milestone gifts, and seven permanent rank rewards. Equip unlocked finishes in Customize; locked finishes show their requirements.
-- **Player profiles** save callsigns, completed levels and best stars/scores, RP/peak rank, XP, flight statistics, equipped cosmetics, and the last 30 flights. Player account includes backup export/import.
-- **Supabase integration** for Gmail/email login links, Google, Facebook, and account cloud saves. Guest and signed-in saves stay separate; moving guest progress into an account requires confirmation. Cloud revision checks prevent silent overwrites from another device.
+Layered aircraft/weapon audio includes distinct cannon bursts and directional enemy fire. Engine/music briefly lower while firing so cannons stay audible. Lobby and match have different original themes. Settings → Your soundtrack accepts separate local music files up to 50 MB per track; files stay in this browser and are never uploaded. See [docs/AUDIO.md](docs/AUDIO.md). Keep `audio/` when deploying.
 
 ## Activate login and cloud saves
 
-Guest saves work immediately on this device. **The login providers and cloud saves require your own Supabase project and provider activation. They are not active in the download.**
+Guest saves work immediately on this device. **Email/Gmail links, Google, Facebook and account cloud saves require your own activated Supabase project; providers are not active in the download.**
 
-Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supabase.sql) in your Supabase project, and edit the two public values in `account-config.json` before uploading the folder. The guide includes email delivery, Google, Facebook, redirect URLs, and verification steps. Never place private service-role/provider/SMTP secrets in website files.
+Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supabase.sql), and configure the two public values in `account-config.json`. Never place private service-role/provider/SMTP secrets in website files. Keep your configured `account-config.json` during future updates. Guest and signed-in saves remain separate; moving guest progress to an account requires confirmation.
 
-For future game updates, keep your configured `account-config.json` and the same website address. Guest progress belongs to that browser and origin; export a backup before clearing browser data or changing sites.
+## Performance and validation
 
-## Controls and performance
+Low, Balanced and High remain fixed graphics presets. Automatic resolution is separate and off by default. Begin with Low on slower devices. RAM alone does not determine frame rate; browser hardware acceleration and graphics hardware matter. Projectile, particle and pixel budgets remain bounded; fewer active enemies reduce combat clutter and work. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier measured results and their limits.
 
-Mouse aims; left click or Space fires; WASD / arrows steer; Shift boosts; Q/E roll; F launches a guided missile; P / Escape pauses. Touch controls appear on phones. Green gates restore hull and boost. Terrain/water contact destroys your jet; an aircraft collision destroys both jets.
+v2.3.1 passed **80 automated tests, 29 general browser checks and 20 mobile-control browser checks**. Tests cover every campaign/rank's arrival limits and weapon balance, one real guided missile killing a full-health opponent, cursor visibility, complete multi-stage gameplay, collisions, settings and multi-touch controls. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
 
-Low, Balanced, and High remain fixed graphics presets. Automatic resolution is a separate option, off by default. Selecting a preset disables Auto and restores full preset sharpness. Start with Low on slower computers. The settings dialog identifies software rendering when browser hardware acceleration is unavailable.
-
-The renderer retains its existing pixel/entity/effect limits, batching, and light water shader. Skin rewards add no downloaded textures or aircraft models. The account SDK is loaded only when the account service is configured.
-
-v2.3.0 validation: **78 automated tests, 20 mobile-control browser checks, and 27 general browser checks pass.** The mobile suite uses actual simultaneous touch inputs and covers live aiming/hostile damage, tracking, release/cancel safety, preferences, fullscreen fallback, orientation, scrolling, small phones and tablets. The PC comparison confirms identical bounds and computed styles for 18 UI elements in lobby, fullscreen flight and paused window, plus identical keyboard-control dialog HTML. Simulation, renderer, audio and the existing stylesheet remain byte-for-byte unchanged. Live account providers still require project activation. No physical mobile device or 4 GB/8 GB PC was available; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier rendering measurements.
-
-For GitHub Pages, choose `skychrome-website` and `/ (root)` under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.
+For GitHub Pages, select skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.

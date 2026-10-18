@@ -1,12 +1,12 @@
-# Skychrome v2.3.0 — mobile flight controls
+# Skychrome v2.3.1 — mobile flight controls
 
-The mobile flight system activates when the browser reports a coarse primary pointer, as on phones and tablets. Desktop mouse/keyboard controls and layout stay the same. There are no physics, enemy, weapon, graphics or audio changes in this update.
+The mobile flight system activates when the browser reports a coarse primary pointer, as on phones and tablets. Desktop mouse/keyboard controls and layout stay the same. The v2.3.1 combat balance applies to both mobile and PC: fewer enemies, triple cannon damage and a one-hit missile kill. The dual-stick controls from v2.3.0 remain the same.
 
 ## Fly and aim independently
 
 - **Left stick — STEER:** drag to fly horizontally or vertically. Small movements give precise analog input; the dead zone ignores thumb jitter. Let go to stop steering input; the aircraft retains its normal momentum.
 - **Right stick — AIM + FIRE:** drag to move the gun sight independently of the aircraft. Holding the stick fires by default, so two thumbs can steer, aim and shoot together. Let go to stop firing and hold the sight where you left it.
-- **LOCK / NEXT:** tap LOCK to track a visible hostile's predicted lead closest to your sight. Once tracking, NEXT cycles eligible visible enemies. Tracking only aims; hold the aim stick near its center or use FIRE to shoot. Enemies still need sustained hits. Tracking ends if the hostile is destroyed, passes behind you or leaves the visible aiming area. Dragging the aim stick immediately takes over manual aiming. Tracking does not fly or dodge for you.
+- **LOCK / NEXT:** tap LOCK to track a visible hostile's predicted lead closest to your sight. Once tracking, NEXT cycles eligible visible enemies. Tracking only aims; hold the aim stick near its center or use FIRE to shoot. Cannon rounds deal three hull damage each; a missile impact destroys the target. Tracking ends if the hostile is destroyed, passes behind you or leaves the visible aiming area. Dragging the aim stick immediately takes over manual aiming. Tracking does not fly or dodge for you.
 - **CENTER:** release tracking and return the sight to the middle of the screen.
 - **FIRE:** a separate hold button, also useful with aim-and-fire switched off.
 - **BOOST / MISSILE:** hold boost for afterburners; hold missile to fire whenever its normal seven-second recharge is ready. The mobile missile label shows recharge time.
@@ -36,4 +36,4 @@ Aiming moves at the same rate at 20, 30 and 60 rendered FPS, with a curved respo
 
 ## Install this update
 
-Download and extract the website ZIP, then upload the folder containing `index.html`, `assets/` and `audio/` to the existing site's Netlify Deploys page. Keep your configured `account-config.json` if accounts are enabled. Refresh and check v2.3.0. Keeping the same website address retains local profiles and custom songs.
+Download and extract the website ZIP, then upload the folder containing `index.html`, `assets/` and `audio/` to the existing site's Netlify Deploys page. Keep your configured `account-config.json` if accounts are enabled. Refresh and check v2.3.1. Keeping the same website address retains local profiles and custom songs.

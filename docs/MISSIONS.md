@@ -1,4 +1,4 @@
-# Skychrome v2.2.1 — long operations and roll controls
+# Skychrome v2.3.1 — long operations and roll controls
 
 Campaign and ranked games now use multi-stage operations. The new objective budgets replace the short v2.0 sorties; existing level unlocks, earned skins, profiles and account configuration remain compatible.
 
@@ -6,14 +6,14 @@ Campaign and ranked games now use multi-stage operations. The new objective budg
 
 - Every stage has its own hostile and flight-gate objectives. Finish both to advance to the next stage.
 - Finish every stage to win immediately. There is no forced minimum survival time or waiting period after the last objective.
-- Extra kills in an early stage earn score but cannot satisfy later stage objectives. Enemy reinforcements remain active while you fly the route.
+- Extra kills in an early stage earn score but cannot satisfy later stage objectives. Reinforcements pause when a stage’s combat goal is complete and resume in the next stage; existing jets finish their attack runs.
 - Missing a gate does not fail the whole mission: replacement gates continue along that stage's route. A completed gate objective stops producing gates until the next stage.
 - The countdown is the operation's failure deadline. Waiting until it expires never awards a win.
 - The fullscreen HUD shows current stage goals, whole-operation totals, elapsed time, and your roll angle. Pause preserves the current flight.
 
 ## Campaign
 
-There are still 100 levels. Counts, formation sizes, enemy hull, attack frequency/damage/aiming, and maneuvering increase as levels rise; gate clearance decreases. Both route length and objective budgets grow. Enemy counts, projectiles, effects and rendering pixels retain their existing caps.
+There are still 100 levels. Objective counts, enemy hull, attack frequency/damage/aiming, and maneuvering increase as levels rise; gate clearance decreases. Both route length and objective budgets grow. Active enemies are capped at three in campaign/quick flights and four in ranked. Only one arrives at a time; later missions shorten arrival spacing while keeping these caps. Projectile, effect and pixel limits remain unchanged.
 
 | Operation | Stages | Hostiles | Gates | Cruise estimate | Deadline |
 | --- | ---: | ---: | ---: | --- | --- |
@@ -60,4 +60,8 @@ Old saved keys migrate automatically. The old default E missile moves to F. If F
 
 ## Update your site
 
-Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.2.1.
+Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.3.1.
+
+## Weapons and cursor in v2.3.1
+
+Each cannon round deals three hull damage (six if both rounds of a volley hit). One missile impact destroys any enemy jet; missiles retain their seven-second recharge and normal homing, flight time and collision checks. The mouse arrow hides over the active airspace, while the sight and lead marker remain visible. Pausing, opening dialogs or reaching a result restores the cursor.
