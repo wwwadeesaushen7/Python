@@ -1,3 +1,5 @@
+Latest release measurements: [v2.4.1 fullscreen and performance report](PERFORMANCE-2.4.1.md). The comparisons below describe earlier releases.
+
 # Version 1.1 performance comparison
 
 Measured in the same cloud environment using Chromium with SwiftShader software rendering, a 1440×1080 CSS viewport, and device pixel ratio 1. The old deployed build and the revised production build were served as static files sequentially. Each scenario uses a fresh browser context, a 1-second gameplay warmup, and a 5-second requestAnimationFrame sample. No other test browsers were running during measurement. Both builds use their normal adaptive graphics behavior.

@@ -1,4 +1,4 @@
-# Skychrome v2.4.0 — ready-to-host website
+# Skychrome v2.4.1 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play this compiled website.
 
@@ -7,9 +7,16 @@ This folder contains the complete browser game. No Python or Node.js installatio
 1. Download the skychrome-website branch ZIP from GitHub and extract it.
 2. If you enabled accounts, keep your configured `account-config.json` in the new folder.
 3. Open your existing Netlify site → Deploys and upload the extracted folder containing `index.html`, `assets/`, `audio/` and `account-config.json`. Keep all these files/folders together.
-4. Refresh your game website and check **v2.4.0** on the flight deck. Choose a mode and press PLAY.
+4. Refresh your game website and check **v2.4.1** on the flight deck. Choose a mode and press PLAY.
 
 Keeping the same website address retains browser saves and custom songs. Back up player progress from Player account before clearing website data or changing sites.
+
+## Fullscreen and FPS fixes in v2.4.1
+
+- P/the pause button keep fullscreen. If Escape or the browser leaves fullscreen, **Resume flight enters fullscreen again** and continues the same mission without resetting health, score or progress. Browsers without native fullscreen still resume in the game window.
+- Water/sky rendering, HUD updates, layout reads and active-flight compositing now do less work. Fixed pixel budgets are lower to improve frame rate. All modes, skins, controls, weapons, AI, sounds, music and saves remain available.
+- **Settings → Boost FPS** explicitly selects Low plus Automatic resolution for slower devices. Manual Low/Balanced/High stay fixed unless you enable Automatic resolution yourself; High never secretly switches to Low.
+- In the same software-rendered fullscreen patrol, Low improved **42.0 → 59.8 FPS**, Balanced **28.9 → 47.5 FPS**, and High **18.5 → 37.2 FPS**. At identical 800×600 rendering resolution, Balanced improved **43.0 → 54.4 FPS**. These short cloud benchmarks are not minimum-FPS guarantees for your PC. Use Boost FPS for the most headroom. Details and limitations: [docs/PERFORMANCE-2.4.1.md](docs/PERFORMANCE-2.4.1.md).
 
 ## A game hangar lobby in v2.4.0
 
@@ -64,8 +71,8 @@ Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supaba
 
 ## Performance and validation
 
-Low, Balanced and High remain fixed graphics presets. Automatic resolution is separate and off by default. Begin with Low on slower devices. RAM alone does not determine frame rate; browser hardware acceleration and graphics hardware matter. Projectile, particle and pixel budgets remain bounded; fewer active enemies reduce combat clutter and work. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier measured results and their limits.
+Low, Balanced and High remain fixed graphics presets. Automatic resolution is separate and off by default. Use Settings → Boost FPS on slower devices, or choose Low for a fixed render resolution. RAM alone does not determine frame rate; browser hardware acceleration and graphics hardware matter. Projectile, particle and pixel budgets remain bounded; fewer active enemies reduce combat clutter and work. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier measured results and their limits.
 
-v2.4.0 passed **80 automated tests and 109 browser checks**: 16 lobby, 29 general gameplay, 20 mobile controls, 23 audio/music and 21 progression/account checks. Checks cover every lobby entry point, native fullscreen and return, drag inspection, skin preview/persistence, small-screen layouts, live gameplay and collisions, full multi-stage victories and reward gifts, touch input, music files, profiles, backups and the real Supabase SDK against simulated provider responses. Live providers still require project activation. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
+v2.4.1 passed **80 automated tests and 118 browser checks**: 9 fullscreen/FPS controls, 16 lobby, 29 general gameplay, 20 mobile controls, 23 audio/music and 21 progression/account checks. Checks cover every lobby entry point, native fullscreen and return, drag inspection, skin preview/persistence, small-screen layouts, live gameplay and collisions, full multi-stage victories and reward gifts, touch input, music files, profiles, backups and the real Supabase SDK against simulated provider responses. Live providers still require project activation. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
 
 For GitHub Pages, select skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.

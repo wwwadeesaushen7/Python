@@ -44,4 +44,4 @@ No additional texture downloads, model downloads or runtime libraries are requir
 
 ## Update your website
 
-Extract the new website ZIP and upload its folder containing `index.html`, `assets/`, `audio/` and `account-config.json` to the existing Netlify site's Deploys page. Keep your configured `account-config.json` if accounts are enabled. Refresh and check v2.4.0. Use the same website address to retain local saves, controls and custom songs.
+Extract the new website ZIP and upload its folder containing `index.html`, `assets/`, `audio/` and `account-config.json` to the existing Netlify site's Deploys page. Keep your configured `account-config.json` if accounts are enabled. Refresh and check the version listed in the included README. Use the same website address to retain local saves, controls and custom songs.
