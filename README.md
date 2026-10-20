@@ -1,4 +1,4 @@
-# Skychrome v2.3.1 — ready-to-host website
+# Skychrome v2.4.0 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play this compiled website.
 
@@ -7,9 +7,24 @@ This folder contains the complete browser game. No Python or Node.js installatio
 1. Download the skychrome-website branch ZIP from GitHub and extract it.
 2. If you enabled accounts, keep your configured `account-config.json` in the new folder.
 3. Open your existing Netlify site → Deploys and upload the extracted folder containing `index.html`, `assets/`, `audio/` and `account-config.json`. Keep all these files/folders together.
-4. Refresh your game website and check **v2.3.1** on the flight deck. Choose a mode and press Launch mission.
+4. Refresh your game website and check **v2.4.0** on the flight deck. Choose a mode and press PLAY.
 
 Keeping the same website address retains browser saves and custom songs. Back up player progress from Player account before clearing website data or changing sites.
+
+## A game hangar lobby in v2.4.0
+
+The lobby now fills the browser viewport like a game menu. Your equipped jet sits in a real 3D hangar, surrounded by player/rank tiles, mode selection, aircraft customization and a clear PLAY button. Drag the aircraft background to inspect it and use the reset icon to restore the view. Native lobby fullscreen is available from the top icon.
+
+**Every existing feature remains available.**
+
+- PLAY offers Campaign, Ranked and all Quick flight missions, with real briefings and objective totals.
+- HANGAR, the skin-count tile and Customize open all 21 aircraft finishes, with the same unlock/reward rules. Equipping a skin updates the showroom immediately.
+- The profile tile/P1 avatar opens account login, callsigns, cloud sync/conflicts and backup import/export. Campaign and rank tiles open the 100-level map and eight-rank ladder.
+- MISSION LOG and PERSONAL BEST retain flight history. GUIDE and CONTROLS retain manuals, keyboard bindings and mobile preferences. GRAPHICS and Settings retain fixed presets and optional automatic resolution. Sound, music and personal lobby/match files remain available in Settings.
+- Portrait, landscape, small phone and tablet layouts retain every menu destination; PLAY stays visible below an internally scrolling briefing. Returning from a sortie restores the hangar.
+- Flight controls, enemy/weapon balance, 100 campaign levels, ranked progression, skin gifts, audio, local profiles and account integration retain their existing behavior.
+
+The showroom shares the flight aircraft's geometry/materials and uses the same renderer/context and graphics pixel budgets. It adds no external texture/model downloads, real-time shadow maps or post-processing. Idle lobby rendering remains capped at 30 FPS; reduced motion disables the small idle aircraft movement. See [docs/LOBBY.md](docs/LOBBY.md) for the complete feature navigation guide.
 
 ## Less crowded combat and stronger weapons
 
@@ -51,6 +66,6 @@ Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supaba
 
 Low, Balanced and High remain fixed graphics presets. Automatic resolution is separate and off by default. Begin with Low on slower devices. RAM alone does not determine frame rate; browser hardware acceleration and graphics hardware matter. Projectile, particle and pixel budgets remain bounded; fewer active enemies reduce combat clutter and work. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier measured results and their limits.
 
-v2.3.1 passed **80 automated tests, 29 general browser checks and 20 mobile-control browser checks**. Tests cover every campaign/rank's arrival limits and weapon balance, one real guided missile killing a full-health opponent, cursor visibility, complete multi-stage gameplay, collisions, settings and multi-touch controls. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
+v2.4.0 passed **80 automated tests and 109 browser checks**: 16 lobby, 29 general gameplay, 20 mobile controls, 23 audio/music and 21 progression/account checks. Checks cover every lobby entry point, native fullscreen and return, drag inspection, skin preview/persistence, small-screen layouts, live gameplay and collisions, full multi-stage victories and reward gifts, touch input, music files, profiles, backups and the real Supabase SDK against simulated provider responses. Live providers still require project activation. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
 
 For GitHub Pages, select skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.
