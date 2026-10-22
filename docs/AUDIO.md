@@ -35,3 +35,9 @@ Custom songs are streamed through HTML audio; the game does not allocate a full 
 Keep `audio/` beside `index.html` and `assets/` in the extracted deployment folder. It contains the two MP3 themes. No Python, NumPy, FFmpeg or Node.js installation is needed to play the finished website.
 
 Source contributors can regenerate the original music with `python scripts/create-music.py` if NumPy and FFmpeg are installed. Those are authoring tools, not runtime dependencies.
+
+## v2.5.0 aircraft and environment mix
+
+A shared two-second combustion/turbine buffer adds stochastic pressure, low rumble and harmonics; playback rate and filter settings follow throttle with a short spool delay. Afterburner engagement adds a pressure transient. Four theatre-specific filtered wind/rumble beds vary with time. Canyon gun tails use a longer echo; glacier reflections are shorter, and coast/caldera tails are restrained. A single filtered feedback path serves all cannon shots.
+
+Flybys now sweep across stereo space, attenuate with distance and apply a bounded radial Doppler shift. Cockpit wind is quieter and low clearance produces a restrained repeating warning. The 24-effect-voice cap and cleanup remain active; all new buffers/filters are shared and bounded. These are original synthesized effects, not recordings of a real aircraft. Existing music, local file import, mute and volume preferences remain compatible.

@@ -1,4 +1,4 @@
-# Skychrome v2.4.1 — ready-to-host website
+# Skychrome v2.5.0 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play this compiled website.
 
@@ -7,9 +7,20 @@ This folder contains the complete browser game. No Python or Node.js installatio
 1. Download the skychrome-website branch ZIP from GitHub and extract it.
 2. If you enabled accounts, keep your configured `account-config.json` in the new folder.
 3. Open your existing Netlify site → Deploys and upload the extracted folder containing `index.html`, `assets/`, `audio/` and `account-config.json`. Keep all these files/folders together.
-4. Refresh your game website and check **v2.4.1** on the flight deck. Choose a mode and press PLAY.
+4. Refresh your game website and check **v2.5.0** on the flight deck. Choose a mode and press PLAY.
 
 Keeping the same website address retains browser saves and custom songs. Back up player progress from Player account before clearing website data or changing sites.
+
+## New worlds, textures and mission variety in v2.5.0
+
+- **Three new maps:** Glacier Reach (alpine fjords), Saffron Canyon (sandstone riverlands) and Ember Caldera (volcanic dusk). Each has different real terrain, collision geometry, horizon, water/light/haze, weather and environment sound. In **Quick flight → Select theatre**, all existing missions support all four maps. Map choice saves locally; campaign changes theatre every five levels and ranked rotates by rank.
+- **Richer graphics:** aircraft panel seams, rivets and weathering; metal/canopy reflections; tiled rock detail and snow/sandstone/basalt tones. Small shared procedural textures need no downloads or extra reflection render passes.
+- **Richer sound:** turbine/combustion layers, throttle spool, afterburner transients, map wind/rumble, canyon/glacier gun tails, distance attenuation and moving stereo/Doppler flybys. Sounds remain original synthesis rather than recordings; custom music still works.
+- **Shorter early levels:** levels 1–5 have one stage; 6–20 two; 21–50 three; 51–80 four; 81–100 five. Ranked now has 3–5 varied stages, with harder AI and tighter routes as rank rises.
+- **Varied objectives:** patrol, low terrain runs, timed reconnaissance in blue corridors and marked ace interceptions. Finish every displayed objective to pass. Scanning elsewhere does not count; missed passes get replacements. A gold ace has more hull and faster maneuvers; one missile impact still destroys it.
+- **Replay contracts:** optional hull, cannon, perfect-route or boost goals award 800–1,000 bonus score on victory. Consecutive replays offer a different contract. Existing progress, 21 skins, gifts, accounts, controls, music and fullscreen recovery remain compatible.
+
+See [docs/WORLDS.md](docs/WORLDS.md) and [docs/MISSIONS.md](docs/MISSIONS.md). For slower devices, use **Settings → Boost FPS**. Software-rendered opening samples measured about 58 FPS Low, 43 Balanced and 32 High; your device's results vary. Details: [docs/PERFORMANCE-2.5.0.md](docs/PERFORMANCE-2.5.0.md).
 
 ## Fullscreen and FPS fixes in v2.4.1
 
@@ -54,8 +65,8 @@ Water/terrain contact destroys your jet; an aircraft collision destroys both jet
 
 ## Modes, progression and gifts
 
-- **Campaign:** 100 sequential levels with 4–8 stages, longer routes and harder objectives/AI as levels rise. Win to unlock the next level; earn stars and eleven milestone skin gifts.
-- **Ranked:** a solo AI ladder through Cadet, Bronze, Silver, Gold, Platinum, Diamond, Ace and Legend. Complete 6–9 extended combat/route stages. Wins earn 120–150 RP; defeat, leaving or interruption costs up to 45 RP. Seven rank skins remain earned after demotion. This is not online PvP.
+- **Campaign:** 100 sequential levels, from 1–2 early stages to five advanced stages, with varied objectives and harder AI as levels rise. Win to unlock the next level; earn stars and eleven milestone skin gifts.
+- **Ranked:** a solo AI ladder through Cadet, Bronze, Silver, Gold, Platinum, Diamond, Ace and Legend. Complete 3–5 varied combat/route stages. Wins earn 120–150 RP; defeat, leaving or interruption costs up to 45 RP. Seven rank skins remain earned after demotion. This is not online PvP.
 - **Quick flight:** Azure Horizon patrol, Crimson Skies combat, and peaceful Open Horizon free flight.
 - **21 skins:** three starters plus campaign/rank gifts. Player profiles retain completed levels, best results, RP, XP, statistics, cosmetics and recent flights; export/import backups from Player account.
 
@@ -73,6 +84,6 @@ Follow [docs/ACCOUNTS.md](docs/ACCOUNTS.md), run [docs/supabase.sql](docs/supaba
 
 Low, Balanced and High remain fixed graphics presets. Automatic resolution is separate and off by default. Use Settings → Boost FPS on slower devices, or choose Low for a fixed render resolution. RAM alone does not determine frame rate; browser hardware acceleration and graphics hardware matter. Projectile, particle and pixel budgets remain bounded; fewer active enemies reduce combat clutter and work. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for earlier measured results and their limits.
 
-v2.4.1 passed **80 automated tests and 118 browser checks**: 9 fullscreen/FPS controls, 16 lobby, 29 general gameplay, 20 mobile controls, 23 audio/music and 21 progression/account checks. Checks cover every lobby entry point, native fullscreen and return, drag inspection, skin preview/persistence, small-screen layouts, live gameplay and collisions, full multi-stage victories and reward gifts, touch input, music files, profiles, backups and the real Supabase SDK against simulated provider responses. Live providers still require project activation. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
+v2.5.0 passed **88 automated tests and 126 browser checks**: 8 maps/variety, 9 fullscreen/FPS controls, 16 lobby, 29 general gameplay, 20 mobile controls, 23 audio/music and 21 progression/account checks. Checks cover every lobby entry point, native fullscreen and return, drag inspection, skin preview/persistence, small-screen layouts, live gameplay and collisions, full multi-stage victories and reward gifts, touch input, music files, profiles, backups and the real Supabase SDK against simulated provider responses. Live providers still require project activation. No physical 4 GB/8 GB PC or phone was available for hardware validation. Live account providers must be checked after project activation.
 
 For GitHub Pages, select skychrome-website and / (root) under repository Settings → Pages → Deploy from a branch. Asset paths support subdirectory hosting.

@@ -1,67 +1,65 @@
-# Skychrome v2.3.1 — long operations and roll controls
+# Skychrome v2.5.0 — shorter early levels and varied objectives
 
-Campaign and ranked games now use multi-stage operations. The new objective budgets replace the short v2.0 sorties; existing level unlocks, earned skins, profiles and account configuration remain compatible.
+Existing campaign completions, earned gifts, RP and player profiles remain compatible. Levels are still sequential: all 100 are playable, and completing a level unlocks the next.
 
-## Completing a mission
+## Campaign pacing
 
-- Every stage has its own hostile and flight-gate objectives. Finish both to advance to the next stage.
-- Finish every stage to win immediately. There is no forced minimum survival time or waiting period after the last objective.
-- Extra kills in an early stage earn score but cannot satisfy later stage objectives. Reinforcements pause when a stage’s combat goal is complete and resume in the next stage; existing jets finish their attack runs.
-- Missing a gate does not fail the whole mission: replacement gates continue along that stage's route. A completed gate objective stops producing gates until the next stage.
-- The countdown is the operation's failure deadline. Waiting until it expires never awards a win.
-- The fullscreen HUD shows current stage goals, whole-operation totals, elapsed time, and your roll angle. Pause preserves the current flight.
+| Levels | Stages |
+| --- | ---: |
+| 1–5 | 1 |
+| 6–20 | 2 |
+| 21–50 | 3 |
+| 51–80 | 4 |
+| 81–100 | 5 |
 
-## Campaign
+Each operation mixes patrol, lower terrain routes, timed reconnaissance or marked-ace interception. All displayed combat and gate goals still matter; a recon/ace objective adds a requirement to that particular stage. Enemy hull, maneuvering, fire frequency/damage/aim and route spread grow with level, while gate radius tightens. Different stage types change the objective mix, so total kills need not rise on every single adjacent level.
 
-There are still 100 levels. Objective counts, enemy hull, attack frequency/damage/aiming, and maneuvering increase as levels rise; gate clearance decreases. Both route length and objective budgets grow. Active enemies are capped at three in campaign/quick flights and four in ranked. Only one arrives at a time; later missions shorten arrival spacing while keeping these caps. Projectile, effect and pixel limits remain unchanged.
+Campaign cycles four theatres every five levels. Active aircraft remain capped at three, arriving one at a time 6–8 seconds apart. Reinforcements stop when both the stage's combat and ace goals are met, and resume in the next stage. Projectiles, particles and pixel budgets remain bounded.
 
 | Operation | Stages | Hostiles | Gates | Cruise estimate | Deadline |
 | --- | ---: | ---: | ---: | --- | --- |
-| Level 1 | 4 | 32 | 28 | ~6 min | 11 min |
-| Level 25 | 5 | 52 | 38 | ~8 min | 14 min |
-| Level 50 | 6 | 73 | 50 | ~11 min | 18 min |
-| Level 75 | 7 | 94 | 61 | ~14 min | 23 min |
-| Level 100 | 8 | 116 | 72 | ~17 min | 27 min |
+| Level 1 | 1 | 6 | 5 | ~1 min | 3 min |
+| Level 5 | 1 | 7 | 5 | ~2 min | 5 min |
+| Level 6 | 2 | 6 | 6 | ~2 min | 5 min |
+| Level 20 | 2 | 13 | 8 | ~2 min | 5 min |
+| Level 21 | 3 | 11 | 9 | ~2 min | 5 min |
+| Level 50 | 3 | 20 | 14 | ~3 min | 6 min |
+| Level 51 | 4 | 22 | 15 | ~4 min | 8 min |
+| Level 80 | 4 | 32 | 20 | ~4 min | 8 min |
+| Level 81 | 5 | 33 | 21 | ~5 min | 9 min |
+| Level 100 | 5 | 39 | 24 | ~5 min | 9 min |
 
-Estimates assume normal cruise speed and successful gates. Boost, missed gates, combat and pilot skill change the actual completion time. These are objectives to complete, not timers to wait out.
+Cruise estimates describe route/combat budgets, not a forced survival timer. Scanning, missed gates/corridors, detours and skill change actual duration. Finish the objectives to win immediately; exceeding the deadline fails the mission.
+
+## How the objectives work
+
+- **Patrol:** clear the stage's hostile and gate counts.
+- **Terrain run:** follow a lower route while watching ground clearance and enemy fire.
+- **Recon:** hold inside the blue corridor at cruise speed until the scan reaches 100%. Waiting elsewhere does not count. Missed passes are replaced. Complete that stage's remaining combat and gate goals too.
+- **Ace interception:** destroy the gold marked aircraft, plus the stage's other objectives. The ace has stronger hull and faster maneuvering. One missile impact still downs it. If it escapes, a replacement can arrive.
+- **Optional contract:** each non-free-flight launch offers a hull, cannon, perfect-route or boost challenge for 800–1,000 bonus score on victory. Replays choose a different contract. Bonuses use the existing score/XP caps and never block the required mission objectives.
+
+The fullscreen HUD describes the current objective, scan/ace progress and optional contract. Extra early kills cannot satisfy later stages. Missing a gate recycles a replacement rather than failing the whole mission. Pause/Resume preserves the flight and restores fullscreen after a native exit.
 
 ## Ranked
 
-Ranked mode remains a solo ladder against AI pilots. Missions are longer and tougher than the previous version, with precision gates and combat in every stage. Every promotion increases the operation's demands.
+Ranked remains a solo AI ladder, with 3–5 varied stages. Higher ranks increase targets, routes, attack strength and precision demands. Theatre changes by rank; at most four enemies are active, arriving singly 5.1–6.5 seconds apart.
 
 | Rank | Stages | Hostiles | Gates | Cruise estimate | Deadline |
 | --- | ---: | ---: | ---: | --- | --- |
-| Cadet | 6 | 54 | 40 | ~9 min | 15 min |
-| Bronze | 6 | 66 | 46 | ~11 min | 18 min |
-| Silver | 7 | 78 | 52 | ~12 min | 20 min |
-| Gold | 7 | 90 | 58 | ~14 min | 23 min |
-| Platinum | 8 | 102 | 64 | ~15 min | 24 min |
-| Diamond | 8 | 114 | 70 | ~17 min | 27 min |
-| Ace | 9 | 126 | 76 | ~19 min | 30 min |
-| Legend | 9 | 138 | 82 | ~20 min | 32 min |
+| Cadet | 3 | 30 | 24 | ~6 min | 11 min |
+| Bronze | 3 | 39 | 29 | ~7 min | 12 min |
+| Silver | 3 | 47 | 34 | ~8 min | 14 min |
+| Gold | 4 | 58 | 39 | ~9 min | 15 min |
+| Platinum | 4 | 67 | 44 | ~10 min | 17 min |
+| Diamond | 4 | 76 | 49 | ~12 min | 20 min |
+| Ace | 5 | 87 | 54 | ~13 min | 21 min |
+| Legend | 5 | 96 | 59 | ~14 min | 23 min |
 
-Wins still award 120–150 RP. Defeats, quits, and interrupted ranked flights cost up to 45 RP. Earned rank skins remain unlocked after demotion.
+Wins award 120–150 RP. Defeats, quits and interrupted ranked flights cost up to 45 RP. Earned rank skins remain unlocked after demotion. This is not online PvP.
 
-## Rotate your jet
+## Quick flight and controls
 
-| Action | Default control |
-| --- | --- |
-| Roll left | Hold **Q** |
-| Roll right | Hold **E** |
-| Missile | **F** |
-| Steer | **WASD** / arrows |
-| Aim and fire | Mouse / left click or Space |
-| Boost | Shift |
-| Pause | P / Escape |
+Quick flight retains Azure Horizon (two recon/interception stages), Crimson Skies (three patrol/terrain/recon stages), and unlimited peaceful Open Horizon. Every quick mission supports all four maps via **Select theatre**. See [WORLDS.md](WORLDS.md) for map and texture details.
 
-Q/E provide continuous 360-degree axial roll. Release either roll key to return smoothly to the normal level angle. Steering follows the aircraft's roll orientation, including inverted flight. The aiming camera stays level, and the cannon muzzles and collision probes rotate with the visible aircraft. Touchscreens have separate left/right roll buttons.
-
-Old saved keys migrate automatically. The old default E missile moves to F. If F already has a custom action, an unused key is chosen for missiles and displayed in Controls and the missile HUD. Other custom bindings are retained where they do not conflict with the new roll keys.
-
-## Update your site
-
-Extract the new website ZIP and deploy the folder containing index.html to your existing Netlify site's Deploys page. If you activated accounts, keep your configured account-config.json in that folder. The same website address keeps browser saves. Refresh and check v2.3.1.
-
-## Weapons and cursor in v2.3.1
-
-Each cannon round deals three hull damage (six if both rounds of a volley hit). One missile impact destroys any enemy jet; missiles retain their seven-second recharge and normal homing, flight time and collision checks. The mouse arrow hides over the active airspace, while the sight and lead marker remain visible. Pausing, opening dialogs or reaching a result restores the cursor.
+WASD/arrows steer; mouse aims; left click/Space fires; Shift boosts; Q/E rolls; F launches a missile; P/Escape pauses. Release Q/E to recover to level. Customized keys remain available in Controls. Mobile retains independent flight/aim sticks, target tracking and separate fire/boost/missile/roll buttons. Ground contact crashes your jet; aircraft collisions destroy both aircraft.

@@ -1,4 +1,4 @@
-Latest release measurements: [v2.4.1 fullscreen and performance report](PERFORMANCE-2.4.1.md). The comparisons below describe earlier releases.
+Latest release measurements: [v2.5.0 graphics and performance](PERFORMANCE-2.5.0.md). The comparisons below describe earlier releases.
 
 # Version 1.1 performance comparison
 
