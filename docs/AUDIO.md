@@ -1,4 +1,4 @@
-# Skychrome v2.2.1 — audio and your own music
+# Skychrome — audio and your own music
 
 The game includes separate original instrumental music for the lobby and the match, plus procedural aircraft and combat sound effects. No music account, external stream, or plugin is required.
 
@@ -41,3 +41,11 @@ Source contributors can regenerate the original music with `python scripts/creat
 A shared two-second combustion/turbine buffer adds stochastic pressure, low rumble and harmonics; playback rate and filter settings follow throttle with a short spool delay. Afterburner engagement adds a pressure transient. Four theatre-specific filtered wind/rumble beds vary with time. Canyon gun tails use a longer echo; glacier reflections are shorter, and coast/caldera tails are restrained. A single filtered feedback path serves all cannon shots.
 
 Flybys now sweep across stereo space, attenuate with distance and apply a bounded radial Doppler shift. Cockpit wind is quieter and low clearance produces a restrained repeating warning. The 24-effect-voice cap and cleanup remain active; all new buffers/filters are shared and bounded. These are original synthesized effects, not recordings of a real aircraft. Existing music, local file import, mute and volume preferences remain compatible.
+
+## v2.7.0 combat and turbine upgrade
+
+The continuous engine combines a combustion/turbine sample, quiet rotational harmonics and wind with a new three-second stereo afterburner layer. Boost power drives its level, rate and filtering; the cockpit softens the upper frequencies. Three reusable cannon variants mix a sharp crack, pressure pulse, low body and metallic mechanism. New reusable buffers add metallic impact ringing, missile ignition/burn and a pressure-wave explosion with a debris tail. Flybys reuse the turbine sample with moving stereo and a falling Doppler rate.
+
+A shared 0.65-second stereo outdoor impulse adds early reflections, strongest in the canyon and lighter over open water. It serves all effects without creating a convolver for each shot. The new combat, afterburner and impulse buffers total under 2 MB of PCM at 48 kHz; existing music continues to stream separately. Transient voices retain the 24-voice cap and disconnect after playback. Pausing fades weapon effects; crashing lets the explosion finish. The master limiter, per-category volume, cannon mix ducking and local custom music all remain.
+
+These are original synthesized effects, not real jet recordings. The upgrade aims for richer pressure, mechanical detail and spatial cues while keeping downloads and memory small.

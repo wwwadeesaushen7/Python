@@ -1,4 +1,4 @@
-Latest release measurements: [v2.5.0 graphics and performance](PERFORMANCE-2.5.0.md). The comparisons below describe earlier releases.
+Latest release measurements: [v2.7.0 graphics and performance](PERFORMANCE-2.7.0.md). The comparisons below describe earlier releases.
 
 # Version 1.1 performance comparison
 
