@@ -1,4 +1,4 @@
-# Skychrome v2.5.0 — ready-to-host website
+# Skychrome v2.6.0 — ready-to-host website
 
 This folder contains the complete browser game. No Python or Node.js installation is needed to host or play this compiled website.
 
@@ -7,9 +7,19 @@ This folder contains the complete browser game. No Python or Node.js installatio
 1. Download the skychrome-website branch ZIP from GitHub and extract it.
 2. If you enabled accounts, keep your configured `account-config.json` in the new folder.
 3. Open your existing Netlify site → Deploys and upload the extracted folder containing `index.html`, `assets/`, `audio/` and `account-config.json`. Keep all these files/folders together.
-4. Refresh your game website and check **v2.5.0** on the flight deck. Choose a mode and press PLAY.
+4. Refresh your game website and check **v2.6.0** on the flight deck. Choose a mode and press PLAY.
 
 Keeping the same website address retains browser saves and custom songs. Back up player progress from Player account before clearing website data or changing sites.
+
+## More realistic flight and scenery in v2.6.0
+
+- **Aerodynamics:** thrust spool, acceleration limits, speed-dependent drag/control authority, climb and turn energy loss, roll lift loss, mild wind and recoverable stalls. The jet pitches/yaws with its motion while the aiming camera stays level.
+- **Airbrake:** hold **B** on PC or **BRAKE** on mobile. Brake deployment is visible and increases wind noise. Prolonged braking loses lift; release the brake, level out and BOOST to recover. PC bindings can be customized, including previously saved key layouts.
+- **Flight instruments:** correct simulated km/h and metres, G load, vertical speed, ground clearance and airbrake/low-speed/stall warnings. Earlier versions exaggerated the displayed units.
+- **Graphics:** finer shared terrain, cliff/snow shading, wet shorelines and animated surf, water scrolling at aircraft speed, moving ailerons/airbrake and bounded wing vapor. Balanced/High add a lightweight projected ground silhouette; High adds panel normal-map highlights with precomputed tangents. Pixel budgets remain fixed, with Automatic resolution opt-in.
+- **Collision fixes:** gunfire and missiles now stop at terrain; the nearest projectile impact resolves first. Gate collection uses the actual position at the crossing plane. Ground/aircraft crashes and one-missile kills remain.
+
+All four maps, 100 campaign levels, ranked progression, skins, gifts, saved profiles, optional accounts, mobile aiming, music and custom songs remain available. See [docs/FLIGHT-2.6.0.md](docs/FLIGHT-2.6.0.md) for controls/physics details and [docs/PERFORMANCE-2.6.0.md](docs/PERFORMANCE-2.6.0.md) for measured performance and validation.
 
 ## New worlds, textures and mission variety in v2.5.0
 
@@ -57,9 +67,9 @@ Long mission routes, stage counts, level/rank objectives, player progress, rewar
 
 ## Controls
 
-**PC:** WASD/arrows steer; mouse aims; left mouse/Space fires cannons; Shift boosts; Q/E rolls; F launches a missile; P/Escape pauses. Release Q/E to recover to level flight. Keyboard bindings can be customized in All controls.
+**PC:** WASD/arrows steer; mouse aims; left mouse/Space fires cannons; Shift boosts; B holds the airbrake; Q/E rolls; F launches a missile; P/Escape pauses. Release Q/E to recover to level flight. Keyboard bindings can be customized in All controls.
 
-**Mobile:** left stick steers, right stick aims and fires independently. Release the right stick to hold your sight. LOCK tracks a visible enemy's lead, NEXT switches targets, dragging the aim stick takes over, and CENTER resets the sight. Separate FIRE, BOOST, MISSILE and ROLL buttons are available. Tap ☷ to change sensitivity, dead zone, stick size, handedness, tracking and aim-and-fire. Mobile layouts support portrait, landscape and smaller screens, with a viewport-filling fallback when native fullscreen is unavailable. See [docs/MOBILE.md](docs/MOBILE.md).
+**Mobile:** left stick steers, right stick aims and fires independently. Release the right stick to hold your sight. LOCK tracks a visible enemy's lead, NEXT switches targets, dragging the aim stick takes over, and CENTER resets the sight. Separate FIRE, BOOST, BRAKE, MISSILE and ROLL buttons are available. Tap ☷ to change sensitivity, dead zone, stick size, handedness, tracking and aim-and-fire. Mobile layouts support portrait, landscape and smaller screens, with a viewport-filling fallback when native fullscreen is unavailable. See [docs/MOBILE.md](docs/MOBILE.md).
 
 Water/terrain contact destroys your jet; an aircraft collision destroys both jets. Green gates restore hull and boost. Fullscreen launch has a windowed fallback; opening settings or losing focus pauses the flight.
 

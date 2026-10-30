@@ -10,6 +10,7 @@ The mobile flight system activates when the browser reports a coarse primary poi
 - **CENTER:** release tracking and return the sight to the middle of the screen.
 - **FIRE:** a separate hold button, also useful with aim-and-fire switched off.
 - **BOOST / MISSILE:** hold boost for afterburners; hold missile to fire whenever its normal seven-second recharge is ready. The mobile missile label shows recharge time.
+- **BRAKE (v2.6.0):** hold to slow down; release and use BOOST to recover from a stall. Inputs clear on pause, cancellation or focus loss.
 - **ROLL arrows:** hold to rotate the aircraft; release to recover to level flight as before.
 
 Each finger has independent capture. Releasing one does not release another. Canceled touches, pause, focus loss, returning to the lobby and a device rotation clear held inputs so firing or steering cannot remain stuck. Rotating the device pauses the game; resume after the layout settles.
